@@ -1,112 +1,154 @@
 # Web3 Indexer
 
-生产级别的 Web3 链下索引服务，支持 REST 和 GraphQL API。
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
+[![Node](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 特性
+生产级 Web3 链下索引服务，支持 REST 和 GraphQL API，专为以太坊及 EVM 兼容链设计。
 
-- ✅ **可靠同步**：断点续传、错误重试、链重组检测
-- ✅ **高性能**：批量获取、并发控制、增量同步
-- ✅ **多 API 支持**：REST API + GraphQL API
-- ✅ **可观测性**：结构化日志、同步状态监控、健康检查
-- ✅ **灵活配置**：多链、多合约、自定义事件处理器
-- ✅ **类型安全**：TypeScript + Prisma + Zod
+## ✨ 特性
 
-## 架构
+- **🔄 可靠同步** - 断点续传、自动重试、链重组检测与恢复
+- **⚡ 高性能** - 批量获取、并发控制、增量同步
+- **🔌 双 API 支持** - REST API + GraphQL API
+- **📊 可观测性** - 结构化日志、Prometheus 指标、健康检查
+- **🔐 生产就绪** - JWT 认证、Rate Limiting、分布式锁
+- **🛠 类型安全** - TypeScript + Prisma + Zod 全链路类型保障
+
+## 📐 架构
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Indexer Service                        │
-├─────────────────────────────────────────────────────────────┤
-│  Config Manager  │  Logger (Pino)  │  Metrics/Monitor      │
-├─────────────────────────────────────────────────────────────┤
-│                  Block Synchronizer                         │
-│  RPC Client  │  Block Fetcher  │  Reorg Handler            │
-├─────────────────────────────────────────────────────────────┤
-│                  Event Processor                            │
-│  Log Filter  │  Decoder  │  Handlers (ERC20, Custom)       │
-├─────────────────────────────────────────────────────────────┤
-│                  Data Storage Layer                         │
-│  Sync State  │  Events  │  Transfer Events  │  Checkpoints │
-│              Database (SQLite / PostgreSQL)                 │
-├─────────────────────────────────────────────────────────────┤
-│                      API Layer                              │
-│  REST API (Fastify)  │  GraphQL (Apollo Server)            │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Web3 Indexer Service                         │
+├─────────────────────────────────────────────────────────────────────┤
+│  Config Manager  │  Logger (Pino)  │  Metrics (Prometheus)          │
+├─────────────────────────────────────────────────────────────────────┤
+│                        Block Synchronizer                            │
+│     RPC Client (Viem)  │  Block Fetcher  │  Reorg Handler          │
+├─────────────────────────────────────────────────────────────────────┤
+│                        Event Processor                               │
+│     Log Filter  │  ABI Decoder  │  Handlers (ERC20, Swap, Custom) │
+├─────────────────────────────────────────────────────────────────────┤
+│                        Data Storage Layer                            │
+│  SyncState  │  Events  │  Transfers  │  Checkpoints  │  KeyValue   │
+│                    PostgreSQL / SQLite                               │
+├─────────────────────────────────────────────────────────────────────┤
+│                           API Layer                                  │
+│        REST API (Fastify)     │     GraphQL (Apollo Server)        │
+│        Auth & Rate Limiting   │     Playground (Dev Mode)          │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-## 快速开始
+## 🚀 快速开始
 
-### 1. 安装依赖
+### 环境要求
+
+- Node.js >= 18.0.0
+- PostgreSQL 15+ (生产) 或 SQLite (开发)
+- Redis (可选，用于分布式锁)
+
+### 安装
 
 ```bash
+# 克隆项目
+git clone <repository-url>
+cd indexer
+
+# 安装依赖
 npm install
-```
 
-### 2. 配置环境变量
-
-```bash
+# 配置环境变量
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，配置 RPC URL 和要索引的合约：
+### 配置
+
+编辑 `.env` 文件：
 
 ```env
-# RPC 端点
-RPC_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY
+# 服务配置
+NODE_ENV=development
+PORT=3000
+LOG_LEVEL=debug
 
-# 链 ID
+# 数据库
+DATABASE_URL="file:./dev.db"
+
+# 区块链 RPC
+RPC_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY
 CHAIN_ID=1
 
-# 要索引的合约（JSON 数组）
+# 同步配置
+START_BLOCK=0
+BATCH_SIZE=100
+CONFIRMATIONS=12
+SYNC_INTERVAL=1000
+
+# 合约配置 (JSON 数组)
 CONTRACTS='[{"name":"USDT","address":"0xdAC17F958D2ee523a2206206994597C13D831ec7","startBlock":4634748}]'
 ```
 
-### 3. 初始化数据库
+### 启动
 
 ```bash
+# 初始化数据库
 npm run db:push
-```
 
-### 4. 启动服务
-
-```bash
+# 开发模式
 npm run dev
+
+# 生产构建
+npm run build
+npm start
 ```
 
-服务将在 `http://localhost:3000` 启动。
+服务启动后访问：
+- REST API: http://localhost:3000
+- GraphQL Playground: http://localhost:3000/graphql (仅开发模式)
+- 健康检查: http://localhost:3000/health
 
-## API 文档
+## 📖 API 文档
 
 ### REST API
 
 #### 健康检查
 
-```
-GET /health
-GET /ready
+```http
+GET /health          # 服务健康状态
+GET /ready           # 服务就绪状态
 ```
 
 #### 同步状态
 
-```
-GET /api/v1/sync/status
-GET /api/v1/sync/metrics
-GET /api/v1/sync-states
+```http
+GET /api/v1/sync/status      # 所有合约同步状态
+GET /api/v1/sync/metrics     # 同步指标
+GET /api/v1/sync-states      # 同步状态列表
 ```
 
 #### 事件查询
 
-```
+```http
+# 查询事件
 GET /api/v1/events?chainId=1&contractAddress=0x...&eventName=Transfer&limit=100
+
+# 事件计数
 GET /api/v1/events/count?chainId=1&contractAddress=0x...
+
+# 事件名称列表
 GET /api/v1/events/names?chainId=1&contractAddress=0x...
 ```
 
 #### Transfer 事件
 
-```
+```http
+# 查询转账记录
 GET /api/v1/transfers?chainId=1&from=0x...&to=0x...&limit=100
+
+# 转账计数
 GET /api/v1/transfers/count?chainId=1&contractAddress=0x...
+
+# 地址转账历史
 GET /api/v1/transfers/address/:address?chainId=1
 ```
 
@@ -114,21 +156,22 @@ GET /api/v1/transfers/address/:address?chainId=1
 
 访问 `http://localhost:3000/graphql` 使用 GraphQL Playground。
 
-#### 示例查询
+#### 查询示例
 
 ```graphql
-# 查询同步状态
-query {
+# 同步状态
+query SyncStatus {
   syncStatus {
     contractName
     lastSyncedBlock
     latestBlock
     blocksBehind
+    isSyncing
   }
 }
 
-# 查询 Transfer 事件
-query {
+# Transfer 事件
+query Transfers {
   transfers(
     filter: { chainId: 1, contractAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7" }
     limit: 10
@@ -137,13 +180,15 @@ query {
     to
     value
     valueFormatted
+    tokenSymbol
     blockNumber
     txHash
+    blockTimestamp
   }
 }
 
-# 查询地址的转账历史
-query {
+# 地址转账历史
+query AddressHistory {
   address(chainId: 1, address: "0x...") {
     transfers(limit: 20) {
       tokenSymbol
@@ -151,12 +196,14 @@ query {
       to
       valueFormatted
       direction
+      blockNumber
+      txHash
     }
   }
 }
 
-# 查询合约事件
-query {
+# 合约事件
+query ContractEvents {
   contract(chainId: 1, address: "0xdAC17F958D2ee523a2206206994597C13D831ec7") {
     name
     syncState {
@@ -167,12 +214,13 @@ query {
       eventName
       args
       blockNumber
+      txHash
     }
   }
 }
 ```
 
-## 配置说明
+## ⚙️ 配置说明
 
 ### 环境变量
 
@@ -187,9 +235,14 @@ query {
 | `START_BLOCK` | 起始区块 | `0` |
 | `BATCH_SIZE` | 批量大小 | `100` |
 | `CONFIRMATIONS` | 确认数 | `12` |
-| `SYNC_INTERVAL` | 同步间隔(ms) | `1000` |
+| `SYNC_INTERVAL` | 同步间隔 (ms) | `1000` |
 | `MAX_CONCURRENT_REQUESTS` | 最大并发数 | `5` |
-| `CONTRACTS` | 合约配置(JSON) | `[]` |
+| `CONTRACTS` | 合约配置 (JSON) | `[]` |
+| `AUTH_ENABLED` | 启用 JWT 认证 | `false` |
+| `JWT_SECRET` | JWT 密钥 | - |
+| `RATE_LIMIT_ENABLED` | 启用限流 | `true` |
+| `RATE_LIMIT_MAX` | 限流阈值 | `100` |
+| `REDIS_URL` | Redis 连接 | - |
 
 ### 合约配置
 
@@ -203,9 +256,9 @@ query {
 ]
 ```
 
-## 自定义事件处理器
+## 🔧 自定义事件处理器
 
-### 1. 创建处理器
+### 创建处理器
 
 ```typescript
 import { EventProcessor, createEventSignature } from './processor/index.js';
@@ -236,14 +289,13 @@ class MyEventProcessor extends EventProcessor {
   }
 
   private async handleDeposit(event, context) {
-    // 处理 Deposit 事件
     const { user, amount } = event.args;
-    // 保存到数据库...
+    // 自定义处理逻辑...
   }
 }
 ```
 
-### 2. 注册到同步器
+### 注册到同步器
 
 ```typescript
 const myProcessor = new MyEventProcessor(db, logger);
@@ -253,82 +305,115 @@ const synchronizer = new Synchronizer(config, db, logger, async (params) => {
 });
 ```
 
-## 生产部署
+## 🐳 Docker 部署
 
-### 使用 PostgreSQL
+### 使用 Docker Compose
 
-修改 `prisma/schema.prisma`：
+```bash
+# 创建环境变量文件
+cp .env.example .env
 
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+# 启动所有服务
+docker-compose up -d
+
+# 启动包含监控的服务
+docker-compose --profile monitoring up -d
 ```
 
-设置环境变量：
+服务组件：
+- **indexer** - 主服务 (端口 3000)
+- **postgres** - PostgreSQL 数据库 (端口 5432)
+- **redis** - 分布式锁 (端口 6379)
+- **prometheus** - 指标收集 (端口 9090)
+- **grafana** - 可视化面板 (端口 3001)
 
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/indexer"
+### 手动构建
+
+```bash
+docker build -t web3-indexer .
+docker run -p 3000:3000 --env-file .env web3-indexer
 ```
 
-### Docker 部署
-
-```dockerfile
-FROM node:20-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY prisma ./prisma/
-RUN npx prisma generate
-
-COPY dist ./dist/
-
-ENV NODE_ENV=production
-
-CMD ["node", "dist/index.js"]
-```
-
-### 监控指标
-
-- 同步进度：`GET /api/v1/sync/status`
-- 健康检查：`GET /health`
-- 日志输出：结构化 JSON 格式
-
-## 项目结构
+## 📁 项目结构
 
 ```
 indexer/
 ├── src/
-│   ├── index.ts              # 入口文件
-│   ├── config/               # 配置管理
-│   ├── sync/                 # 同步器
-│   │   ├── rpc-client.ts     # RPC 客户端
-│   │   ├── block-fetcher.ts  # 区块获取
-│   │   ├── reorg-handler.ts  # 链重组处理
-│   │   └── synchronizer.ts   # 同步器核心
-│   ├── processor/            # 事件处理器
+│   ├── index.ts                 # 入口文件
+│   ├── config/                  # 配置管理
+│   │   ├── index.ts
+│   │   └── schema.ts            # Zod 配置验证
+│   ├── sync/                    # 同步器
+│   │   ├── rpc-client.ts        # RPC 客户端
+│   │   ├── block-fetcher.ts     # 区块获取
+│   │   ├── reorg-handler.ts     # 链重组处理
+│   │   └── synchronizer.ts      # 同步器核心
+│   ├── processor/               # 事件处理器
 │   │   ├── event-processor.ts
 │   │   └── handlers/
 │   │       └── erc20.handler.ts
-│   ├── storage/              # 数据存储
+│   ├── storage/                 # 数据存储
 │   │   ├── database.ts
 │   │   └── repositories/
-│   ├── api/                  # API 层
-│   │   ├── server.ts         # REST API
-│   │   └── graphql/          # GraphQL API
-│   ├── utils/                # 工具函数
-│   └── types/                # 类型定义
+│   ├── api/                     # API 层
+│   │   ├── server.ts            # REST API
+│   │   └── graphql/             # GraphQL API
+│   ├── middleware/              # 中间件
+│   │   ├── auth.ts              # JWT 认证
+│   │   └── rate-limit.ts        # 限流
+│   ├── lock/                    # 分布式锁
+│   ├── monitoring/              # 监控指标
+│   ├── utils/                   # 工具函数
+│   └── types/                   # 类型定义
 ├── prisma/
-│   └── schema.prisma         # 数据库模型
-├── abis/                     # 合约 ABI 文件
+│   └── schema.prisma            # 数据库模型
+├── abis/                        # 合约 ABI 文件
+├── monitoring/                  # 监控配置
+│   ├── prometheus.yml
+│   └── grafana/
 ├── .env.example
+├── docker-compose.yml
+├── Dockerfile
 └── package.json
 ```
 
-## License
+## 🧪 开发
+
+```bash
+# 开发模式 (热重载)
+npm run dev
+
+# 类型检查
+npm run typecheck
+
+# 代码检查
+npm run lint
+
+# 运行测试
+npm test
+
+# 测试覆盖率
+npm run test:coverage
+
+# 数据库管理
+npm run db:studio    # 打开 Prisma Studio
+npm run db:migrate   # 创建迁移
+```
+
+## 📊 监控
+
+### Prometheus 指标
+
+- `indexer_sync_blocks_total` - 已同步区块总数
+- `indexer_sync_events_total` - 已处理事件总数
+- `indexer_sync_duration_seconds` - 同步耗时
+- `indexer_rpc_requests_total` - RPC 请求总数
+- `indexer_rpc_errors_total` - RPC 错误总数
+
+### Grafana 面板
+
+启动监控服务后访问 `http://localhost:3001`，默认账号 `admin/admin`。
+
+## 📄 License
 
 MIT
