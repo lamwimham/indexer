@@ -1,20 +1,20 @@
 import type { Logger } from './logger.js';
 
 /**
- * Retry options
+ * 重试选项
  */
 export interface RetryOptions {
-  /** Maximum number of retry attempts */
+  /** 最大重试次数 */
   maxRetries: number;
-  /** Initial delay in milliseconds */
+  /** 初始延迟时间（毫秒） */
   initialDelay: number;
-  /** Maximum delay in milliseconds */
+  /** 最大延迟时间（毫秒） */
   maxDelay: number;
-  /** Backoff multiplier */
+  /** 退避乘数 */
   backoffMultiplier: number;
-  /** Whether to retry on specific errors */
+  /** 是否对特定错误进行重试 */
   shouldRetry?: (error: Error) => boolean;
-  /** Logger for retry messages */
+  /** 用于记录重试消息的日志器 */
   logger?: Logger;
 }
 
@@ -26,7 +26,7 @@ const DEFAULT_OPTIONS: RetryOptions = {
 };
 
 /**
- * Execute a function with exponential backoff retry
+ * 使用指数退避重试执行函数
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
@@ -42,12 +42,12 @@ export async function withRetry<T>(
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
-      // Check if we should retry this error
+      // 检查是否应该重试此错误
       if (opts.shouldRetry && !opts.shouldRetry(lastError)) {
         throw lastError;
       }
 
-      // Check if we've exhausted retries
+      // 检查是否已耗尽重试次数
       if (attempt > opts.maxRetries) {
         opts.logger?.error({ error: lastError, attempts: attempt }, 'All retry attempts exhausted');
         throw lastError;
@@ -58,10 +58,10 @@ export async function withRetry<T>(
         `Attempt ${attempt} failed, retrying in ${delay}ms`
       );
 
-      // Wait before next attempt
+      // 等待后进行下一次尝试
       await sleep(delay);
 
-      // Calculate next delay with exponential backoff
+      // 使用指数退避计算下一次延迟
       delay = Math.min(delay * opts.backoffMultiplier, opts.maxDelay);
     }
   }
@@ -70,14 +70,14 @@ export async function withRetry<T>(
 }
 
 /**
- * Sleep for a specified duration
+ * 休眠指定时长
  */
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
- * Check if error is a rate limit error
+ * 检查是否为速率限制错误
  */
 export function isRateLimitError(error: Error): boolean {
   const message = error.message.toLowerCase();
@@ -90,7 +90,7 @@ export function isRateLimitError(error: Error): boolean {
 }
 
 /**
- * Check if error is a network error
+ * 检查是否为网络错误
  */
 export function isNetworkError(error: Error): boolean {
   const message = error.message.toLowerCase();
@@ -104,7 +104,7 @@ export function isNetworkError(error: Error): boolean {
 }
 
 /**
- * Check if error is retryable
+ * 检查错误是否可重试
  */
 export function isRetryableError(error: Error): boolean {
   return isRateLimitError(error) || isNetworkError(error);

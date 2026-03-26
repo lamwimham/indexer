@@ -3,19 +3,19 @@ import type { Logger } from '../utils/logger.js';
 import type { EventHandler, HandlerContext } from '../types/index.js';
 
 /**
- * Event definition with handler
+ * 带有处理器的事件定义
  */
 export interface EventDefinition {
-  /** Event signature (e.g., "Transfer(address,address,uint256)") */
+  /** 事件签名（例如："Transfer(address,address,uint256)"） */
   signature: string;
-  /** Event ABI item */
+  /** 事件 ABI 项 */
   abi: Abi[number];
-  /** Handler function */
+  /** 处理器函数 */
   handler: EventHandler;
 }
 
 /**
- * Event processor for decoding and dispatching events
+ * 事件处理器，用于解码和分发事件
  */
 export class EventProcessor {
   private eventDefinitions: Map<string, EventDefinition> = new Map();
@@ -26,10 +26,10 @@ export class EventProcessor {
   }
 
   /**
-   * Register an event handler
+   * 注册事件处理器
    */
   registerEvent(definition: EventDefinition): void {
-    // Hash the signature to get the topic[0] value
+    // 对签名进行哈希以获取 topic[0] 值
     const signatureHash = keccak256(toHex(definition.signature));
     this.eventDefinitions.set(signatureHash, definition);
     this.logger.debug(
@@ -39,7 +39,7 @@ export class EventProcessor {
   }
 
   /**
-   * Register multiple events
+   * 注册多个事件
    */
   registerEvents(definitions: EventDefinition[]): void {
     for (const def of definitions) {
@@ -48,14 +48,14 @@ export class EventProcessor {
   }
 
   /**
-   * Get registered event signatures
+   * 获取已注册的事件签名
    */
   getRegisteredEvents(): string[] {
     return Array.from(this.eventDefinitions.keys());
   }
 
   /**
-   * Process a log entry
+   * 处理日志条目
    */
   async processLog(
     log: {
@@ -78,13 +78,13 @@ export class EventProcessor {
     eventName: string;
     args: Record<string, unknown>;
   } | null> {
-    // Get event signature from first topic
+    // 从第一个 topic 获取事件签名
     const eventSignature = log.topics[0];
     if (!eventSignature) {
       return null;
     }
 
-    // Find matching event definition
+    // 查找匹配的事件定义
     const definition = this.eventDefinitions.get(eventSignature);
     if (!definition) {
       this.logger.trace(
@@ -95,7 +95,7 @@ export class EventProcessor {
     }
 
     try {
-      // Decode the event log
+      // 解码事件日志
       const decoded = decodeEventLog({
         abi: [definition.abi],
         data: log.data as `0x${string}`,
@@ -115,7 +115,7 @@ export class EventProcessor {
         'Processing event'
       );
 
-      // Call the handler
+      // 调用处理器
       await definition.handler(
         {
           args,
@@ -141,7 +141,7 @@ export class EventProcessor {
   }
 
   /**
-   * Process multiple logs
+   * 处理多个日志
    */
   async processLogs(
     logs: Array<{
@@ -181,7 +181,7 @@ export class EventProcessor {
 }
 
 /**
- * Create event signature from ABI event
+ * 从 ABI 事件创建事件签名
  */
 export function createEventSignature(abiEvent: Abi[number]): string {
   if (abiEvent.type !== 'event') {

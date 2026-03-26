@@ -1,13 +1,13 @@
 import type { PrismaClient } from '@prisma/client';
 
 /**
- * Repository for block checkpoints (reorg detection)
+ * 区块检查点仓库（用于重组检测）
  */
 export class BlockCheckpointRepository {
   constructor(private db: PrismaClient) {}
 
   /**
-   * Save a block checkpoint
+   * 保存区块检查点
    */
   async save(
     chainId: number,
@@ -36,7 +36,7 @@ export class BlockCheckpointRepository {
   }
 
   /**
-   * Get checkpoint for a block
+   * 获取指定区块的检查点
    */
   async get(chainId: number, blockNumber: bigint) {
     return this.db.blockCheckpoint.findUnique({
@@ -50,7 +50,7 @@ export class BlockCheckpointRepository {
   }
 
   /**
-   * Get latest checkpoint
+   * 获取最新的检查点
    */
   async getLatest(chainId: number) {
     return this.db.blockCheckpoint.findFirst({
@@ -60,7 +60,7 @@ export class BlockCheckpointRepository {
   }
 
   /**
-   * Delete checkpoints in range (after reorg)
+   * 删除指定范围内的检查点（重组后）
    */
   async deleteRange(chainId: number, fromBlock: bigint, toBlock: bigint) {
     return this.db.blockCheckpoint.deleteMany({
@@ -72,7 +72,7 @@ export class BlockCheckpointRepository {
   }
 
   /**
-   * Get checkpoints in range
+   * 获取指定范围内的检查点
    */
   async getRange(chainId: number, fromBlock: bigint, toBlock: bigint) {
     return this.db.blockCheckpoint.findMany({

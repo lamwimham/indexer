@@ -1,19 +1,19 @@
 import client from 'prom-client';
 
 // ===========================================
-// Prometheus Registry
+// Prometheus 注册表
 // ===========================================
 export const register = new client.Registry();
 
-// Add default metrics (GC, memory, etc.)
+// 添加默认指标（GC、内存等）
 client.collectDefaultMetrics({ register });
 
 // ===========================================
-// Custom Metrics
+// 自定义指标
 // ===========================================
 
 /**
- * Total blocks synced
+ * 已同步区块总数
  */
 export const blocksSyncedCounter = new client.Counter({
   name: 'indexer_blocks_synced_total',
@@ -23,7 +23,7 @@ export const blocksSyncedCounter = new client.Counter({
 });
 
 /**
- * Total events processed
+ * 已处理事件总数
  */
 export const eventsProcessedCounter = new client.Counter({
   name: 'indexer_events_processed_total',
@@ -33,7 +33,7 @@ export const eventsProcessedCounter = new client.Counter({
 });
 
 /**
- * Current sync lag in blocks
+ * 当前同步延迟区块数
  */
 export const syncLagGauge = new client.Gauge({
   name: 'indexer_sync_lag_blocks',
@@ -43,7 +43,7 @@ export const syncLagGauge = new client.Gauge({
 });
 
 /**
- * Current synced block number
+ * 当前已同步区块号
  */
 export const currentBlockGauge = new client.Gauge({
   name: 'indexer_current_block',
@@ -53,7 +53,7 @@ export const currentBlockGauge = new client.Gauge({
 });
 
 /**
- * Latest block on chain
+ * 链上最新区块号
  */
 export const latestBlockGauge = new client.Gauge({
   name: 'indexer_latest_block',
@@ -63,7 +63,7 @@ export const latestBlockGauge = new client.Gauge({
 });
 
 /**
- * RPC request latency
+ * RPC 请求延迟
  */
 export const rpcLatencyHistogram = new client.Histogram({
   name: 'indexer_rpc_latency_seconds',
@@ -74,7 +74,7 @@ export const rpcLatencyHistogram = new client.Histogram({
 });
 
 /**
- * RPC request count
+ * RPC 请求计数
  */
 export const rpcRequestCounter = new client.Counter({
   name: 'indexer_rpc_requests_total',
@@ -84,7 +84,7 @@ export const rpcRequestCounter = new client.Counter({
 });
 
 /**
- * Database query latency
+ * 数据库查询延迟
  */
 export const dbLatencyHistogram = new client.Histogram({
   name: 'indexer_db_latency_seconds',
@@ -95,7 +95,7 @@ export const dbLatencyHistogram = new client.Histogram({
 });
 
 /**
- * Reorg events detected
+ * 检测到的重组事件数
  */
 export const reorgCounter = new client.Counter({
   name: 'indexer_reorg_total',
@@ -105,7 +105,7 @@ export const reorgCounter = new client.Counter({
 });
 
 /**
- * Reorg depth
+ * 重组深度
  */
 export const reorgDepthGauge = new client.Gauge({
   name: 'indexer_reorg_depth_blocks',
@@ -115,7 +115,7 @@ export const reorgDepthGauge = new client.Gauge({
 });
 
 /**
- * Sync errors
+ * 同步错误数
  */
 export const errorCounter = new client.Counter({
   name: 'indexer_errors_total',
@@ -125,7 +125,7 @@ export const errorCounter = new client.Counter({
 });
 
 /**
- * Is currently syncing
+ * 是否正在同步
  */
 export const isSyncingGauge = new client.Gauge({
   name: 'indexer_is_syncing',
@@ -135,11 +135,11 @@ export const isSyncingGauge = new client.Gauge({
 });
 
 // ===========================================
-// Helper Functions
+// 辅助函数
 // ===========================================
 
 /**
- * Record RPC call metrics
+ * 记录 RPC 调用指标
  */
 export function recordRpcCall(method: string, durationMs: number, success: boolean): void {
   rpcLatencyHistogram.observe({ method }, durationMs / 1000);
@@ -147,14 +147,14 @@ export function recordRpcCall(method: string, durationMs: number, success: boole
 }
 
 /**
- * Record database operation metrics
+ * 记录数据库操作指标
  */
 export function recordDbOperation(operation: string, durationMs: number): void {
   dbLatencyHistogram.observe({ operation }, durationMs / 1000);
 }
 
 /**
- * Update sync progress metrics
+ * 更新同步进度指标
  */
 export function updateSyncProgress(
   chainId: number,
@@ -175,7 +175,7 @@ export function updateSyncProgress(
 }
 
 /**
- * Record event processed
+ * 记录已处理事件
  */
 export function recordEvent(
   chainId: number,
@@ -190,7 +190,7 @@ export function recordEvent(
 }
 
 /**
- * Record block synced
+ * 记录已同步区块
  */
 export function recordBlockSynced(
   chainId: number,
@@ -205,7 +205,7 @@ export function recordBlockSynced(
 }
 
 /**
- * Record reorg event
+ * 记录重组事件
  */
 export function recordReorg(chainId: number, depth: number): void {
   reorgCounter.inc({ chain_id: chainId.toString() });
@@ -213,7 +213,7 @@ export function recordReorg(chainId: number, depth: number): void {
 }
 
 /**
- * Set syncing state
+ * 设置同步状态
  */
 export function setSyncingState(
   chainId: number,
@@ -227,7 +227,7 @@ export function setSyncingState(
 }
 
 /**
- * Record error
+ * 记录错误
  */
 export function recordError(
   chainId: number,
@@ -242,7 +242,7 @@ export function recordError(
 }
 
 /**
- * Get metrics in Prometheus format
+ * 获取 Prometheus 格式的指标
  */
 export async function getMetrics(): Promise<string> {
   return register.metrics();

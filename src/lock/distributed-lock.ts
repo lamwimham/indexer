@@ -2,7 +2,7 @@ import Redis from 'ioredis';
 import type { Logger } from '../utils/logger.js';
 
 /**
- * Distributed lock configuration
+ * 分布式锁配置
  */
 export interface LockConfig {
   redisUrl?: string;
@@ -13,7 +13,7 @@ export interface LockConfig {
 }
 
 /**
- * Lock options
+ * 锁选项
  */
 export interface LockOptions {
   ttl?: number;
@@ -22,7 +22,7 @@ export interface LockOptions {
 }
 
 /**
- * Lock acquisition result
+ * 锁获取结果
  */
 export interface LockResult {
   acquired: boolean;
@@ -31,7 +31,7 @@ export interface LockResult {
 }
 
 /**
- * Distributed lock implementation using Redis
+ * 基于 Redis 的分布式锁实现
  */
 export class DistributedLock {
   private redis: Redis | null = null;
@@ -44,7 +44,7 @@ export class DistributedLock {
 
   constructor(config: LockConfig, logger: Logger) {
     this.keyPrefix = config.keyPrefix ?? 'indexer:lock:';
-    this.defaultTtl = config.defaultTtl ?? 30000; // 30 seconds
+    this.defaultTtl = config.defaultTtl ?? 30000; // 30 秒
     this.retryDelay = config.retryDelay ?? 100;
     this.maxRetries = config.maxRetries ?? 50;
     this.logger = logger.child({ component: 'distributed-lock' });
@@ -69,21 +69,21 @@ export class DistributedLock {
   }
 
   /**
-   * Check if distributed locking is enabled
+   * 检查分布式锁是否启用
    */
   isEnabled(): boolean {
     return this.enabled && this.redis !== null;
   }
 
   /**
-   * Acquire a lock
+   * 获取锁
    */
   async acquire(key: string, options?: LockOptions): Promise<LockResult> {
     const lockKey = `${this.keyPrefix}${key}`;
     const token = this.generateToken();
     const ttl = options?.ttl ?? this.defaultTtl;
 
-    // If Redis is not available, return a no-op lock
+    // 如果 Redis 不可用，返回一个空操作锁
     if (!this.isEnabled() || !this.redis) {
       this.logger.trace({ key }, 'Distributed locking disabled, returning no-op lock');
       return {
@@ -109,13 +109,13 @@ export class DistributedLock {
           };
         }
 
-        // Lock not acquired, wait and retry
+        // 锁未获取成功，等待后重试
         if (attempt < maxRetries - 1) {
           await this.sleep(retryDelay);
         }
       } catch (error) {
         this.logger.error({ error, key }, 'Error acquiring lock');
-        // On error, return as if lock was not acquired
+        // 出错时，返回锁未获取成功
         return {
           acquired: false,
           release: async () => {},
@@ -131,7 +131,7 @@ export class DistributedLock {
   }
 
   /**
-   * Release a lock
+   * 释放锁
    */
   private async release(key: string, token: string): Promise<void> {
     if (!this.isEnabled() || !this.redis) {
@@ -141,7 +141,7 @@ export class DistributedLock {
     const lockKey = `${this.keyPrefix}${key}`;
 
     try {
-      // Use Lua script to ensure we only release our own lock
+      // 使用 Lua 脚本确保只释放自己持有的锁
       const script = `
         if redis.call("get", KEYS[1]) == ARGV[1] then
           return redis.call("del", KEYS[1])
@@ -163,7 +163,7 @@ export class DistributedLock {
   }
 
   /**
-   * Extend a lock's TTL
+   * 延长锁的 TTL
    */
   async extend(key: string, token: string, ttl?: number): Promise<boolean> {
     if (!this.isEnabled() || !this.redis) {
@@ -174,7 +174,7 @@ export class DistributedLock {
     const newTtl = ttl ?? this.defaultTtl;
 
     try {
-      // Use Lua script to ensure we only extend our own lock
+      // 使用 Lua 脚本确保只延长自己持有的锁
       const script = `
         if redis.call("get", KEYS[1]) == ARGV[1] then
           return redis.call("pexpire", KEYS[1], ARGV[2])
@@ -192,7 +192,7 @@ export class DistributedLock {
   }
 
   /**
-   * Check if a lock is held
+   * 检查锁是否被持有
    */
   async isLocked(key: string): Promise<boolean> {
     if (!this.isEnabled() || !this.redis) {
@@ -205,7 +205,7 @@ export class DistributedLock {
   }
 
   /**
-   * Execute a function with a lock
+   * 在持有锁的情况下执行函数
    */
   async withLock<T>(
     key: string,
@@ -227,21 +227,21 @@ export class DistributedLock {
   }
 
   /**
-   * Generate a unique token for this lock instance
+   * 为此锁实例生成唯一令牌
    */
   private generateToken(): string {
     return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
   }
 
   /**
-   * Sleep helper
+   * 睡眠辅助函数
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
-   * Disconnect from Redis
+   * 断开与 Redis 的连接
    */
   async disconnect(): Promise<void> {
     if (this.redis) {
@@ -252,7 +252,7 @@ export class DistributedLock {
 }
 
 /**
- * Create a distributed lock instance
+ * 创建分布式锁实例
  */
 export function createDistributedLock(
   config: LockConfig,

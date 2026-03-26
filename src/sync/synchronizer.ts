@@ -21,7 +21,7 @@ import {
 } from '../monitoring/metrics.js';
 
 /**
- * Event processor function type
+ * 事件处理器函数类型
  */
 export type EventProcessorFn = (params: {
   chainId: number;
@@ -42,7 +42,7 @@ export type EventProcessorFn = (params: {
 }) => Promise<void>;
 
 /**
- * Synchronizer - Core indexing engine
+ * 同步器 - 核心索引引擎
  */
 export class Synchronizer {
   private config: IndexerConfig;
@@ -70,7 +70,7 @@ export class Synchronizer {
     this.logger = logger.child({ component: 'synchronizer' });
     this.eventProcessor = eventProcessor;
 
-    // Initialize RPC client
+    // 初始化RPC客户端
     const chain = config.chains[0];
     this.rpcClient = createRpcClientWrapper(
       chain.id,
@@ -78,13 +78,13 @@ export class Synchronizer {
       this.logger
     );
 
-    // Initialize repositories
+    // 初始化仓库
     this.syncStateRepo = new SyncStateRepository(db);
     this.eventRepo = new EventRepository(db);
     this.checkpointRepo = new BlockCheckpointRepository(db);
     this.transferRepo = new TransferEventRepository(db);
 
-    // Initialize fetcher and reorg handler
+    // 初始化区块获取器和重组处理器
     this.blockFetcher = new BlockFetcher(
       this.rpcClient,
       this.logger,
@@ -102,7 +102,7 @@ export class Synchronizer {
   }
 
   /**
-   * Start the synchronization loop
+   * 启动同步循环
    */
   async start(): Promise<void> {
     if (this.isRunning) {
@@ -113,13 +113,13 @@ export class Synchronizer {
     this.isRunning = true;
     this.logger.info('Starting synchronizer');
 
-    // Check RPC connection
+    // 检查RPC连接
     const isConnected = await this.rpcClient.checkConnection();
     if (!isConnected) {
       throw new Error('Failed to connect to RPC endpoint');
     }
 
-    // Verify chain ID
+    // 验证链ID
     const networkChainId = await this.rpcClient.getNetworkChainId();
     const expectedChainId = this.config.chains[0].id;
     if (networkChainId !== expectedChainId) {
@@ -128,17 +128,17 @@ export class Synchronizer {
       );
     }
 
-    // Start sync loop for each contract
+    // 为每个合约启动同步循环
     const syncPromises = this.config.contracts.map((contract) =>
       this.syncContract(contract)
     );
 
-    // Wait for all sync loops (they run indefinitely)
+    // 等待所有同步循环（它们会无限运行）
     await Promise.all(syncPromises);
   }
 
   /**
-   * Stop the synchronization
+   * 停止同步
    */
   stop(): void {
     this.isRunning = false;
@@ -146,7 +146,7 @@ export class Synchronizer {
   }
 
   /**
-   * Sync a single contract
+   * 同步单个合约
    */
   private async syncContract(contract: ContractConfig): Promise<void> {
     const chainId = this.config.chains[0].id;
@@ -155,7 +155,7 @@ export class Synchronizer {
       address: contract.address,
     });
 
-    // Resolve start block (-1 means latest block)
+    // 解析起始区块（-1表示最新区块）
     let startBlock = contract.startBlock;
     if (startBlock === -1n) {
       const latestBlock = await this.blockFetcher.getLatestBlockWithConfirmations(
@@ -167,7 +167,7 @@ export class Synchronizer {
       log.info({ startBlock: startBlock.toString() }, 'Starting contract sync');
     }
 
-    // Get or create sync state
+    // 获取或创建同步状态
     let syncState = await this.syncStateRepo.get(chainId, contract.address);
 
     if (!syncState) {
@@ -180,7 +180,7 @@ export class Synchronizer {
       );
     }
 
-    // Check for reorg before starting
+    // 启动前检查重组
     const reorgResult = await this.reorgHandler.detectReorg(chainId);
     if (reorgResult.hasReorg && reorgResult.lastValidBlock) {
       log.warn(
@@ -191,7 +191,7 @@ export class Synchronizer {
       await this.reorgHandler.handleReorg(chainId, reorgResult.lastValidBlock + 1n);
       syncState = await this.syncStateRepo.get(chainId, contract.address);
       
-      // If syncState was deleted during reorg, recreate it
+      // 如果同步状态在重组期间被删除，则重新创建
       if (!syncState) {
         syncState = await this.syncStateRepo.upsert(
           chainId,
@@ -203,11 +203,11 @@ export class Synchronizer {
       }
     }
 
-    // Main sync loop
+    // 主同步循环
     while (this.isRunning) {
       try {
         await this.syncBatch(contract, BigInt(syncState!.lastSyncedBlock), log);
-        // Refresh sync state after successful batch
+        // 刷新同步状态
         syncState = await this.syncStateRepo.get(chainId, contract.address);
       } catch (error) {
         log.error({ error }, 'Sync batch failed');
@@ -216,7 +216,7 @@ export class Synchronizer {
           contract.address,
           error instanceof Error ? error.constructor.name : 'UnknownError'
         );
-        // Use upsert to ensure record exists before recording error
+        // 使用upsert确保记录存在后再记录错误
         if (syncState) {
           await this.syncStateRepo.recordError(
             chainId,
@@ -236,13 +236,13 @@ export class Synchronizer {
         }
       }
 
-      // Wait before next sync
+      // 等待下一次同步
       await sleep(this.config.sync.syncInterval);
     }
   }
 
   /**
-   * Sync a batch of blocks
+   * 同步一批区块
    */
   private async syncBatch(
     contract: ContractConfig,
@@ -251,18 +251,18 @@ export class Synchronizer {
   ): Promise<void> {
     const chainId = this.config.chains[0].id;
 
-    // Get the latest safe block (with confirmations)
+    // 获取最新的安全区块（带确认数）
     const latestBlock = await this.blockFetcher.getLatestBlockWithConfirmations(
       this.config.sync.confirmations
     );
 
-    // Check if we're caught up
+    // 检查是否已追上链
     if (fromBlock >= latestBlock) {
       log.debug({ latestBlock: latestBlock.toString() }, 'Caught up with chain');
       return;
     }
 
-    // Calculate batch range
+    // 计算批次范围
     const toBlock = BigInt(
       Math.min(
         Number(fromBlock) + this.config.sync.batchSize,
@@ -275,28 +275,28 @@ export class Synchronizer {
       'Syncing batch'
     );
 
-    // Set syncing flag
+    // 设置同步标志
     await this.syncStateRepo.setSyncing(chainId, contract.address, true);
     setSyncingState(chainId, contract.address, true);
 
-    // Fetch blocks with logs
+    // 获取区块及其日志
     const blocks = await this.blockFetcher.fetchBlockRange(
       fromBlock + 1n,
       toBlock,
       [contract.address]
     );
 
-    // Process each block
+    // 处理每个区块
     for (const { block, logs } of blocks) {
       if (!this.isRunning) break;
 
-      // Filter logs for this contract
+      // 过滤该合约的日志
       const contractLogs = logs.filter(
         (l) => l.address.toLowerCase() === contract.address.toLowerCase()
       );
 
       if (contractLogs.length > 0) {
-        // Process events
+        // 处理事件
         if (this.eventProcessor) {
           await this.eventProcessor({
             chainId,
@@ -317,12 +317,12 @@ export class Synchronizer {
           });
         }
 
-        // Record events processed
+        // 记录已处理的事件
         for (const log of contractLogs) {
           recordEvent(chainId, contract.address, log.topics[0] ?? 'unknown');
         }
 
-        // Save checkpoint
+        // 保存检查点
         await this.reorgHandler.saveCheckpoint(
           chainId,
           block.number!,
@@ -331,7 +331,7 @@ export class Synchronizer {
         );
       }
 
-      // Update sync state
+      // 更新同步状态
       await this.syncStateRepo.upsert(
         chainId,
         contract.address,
@@ -340,14 +340,14 @@ export class Synchronizer {
         true
       );
 
-      // Record block synced
+      // 记录已同步区块
       recordBlockSynced(chainId, contract.address, contract.name);
 
-      // Update metrics
+      // 更新指标
       this.updateMetrics(chainId, contract.address, block.number!, latestBlock);
     }
 
-    // Clear syncing flag
+    // 清除同步标志
     await this.syncStateRepo.setSyncing(chainId, contract.address, false);
     setSyncingState(chainId, contract.address, false);
 
@@ -362,7 +362,7 @@ export class Synchronizer {
   }
 
   /**
-   * Update sync metrics
+   * 更新同步指标
    */
   private updateMetrics(
     chainId: number,
@@ -385,7 +385,7 @@ export class Synchronizer {
       syncSpeed: existing?.syncSpeed ?? 0,
     });
 
-    // Update Prometheus metrics
+    // 更新Prometheus指标
     const contract = this.config.contracts.find(
       (c) => c.address.toLowerCase() === contractAddress.toLowerCase()
     );
@@ -399,14 +399,14 @@ export class Synchronizer {
   }
 
   /**
-   * Get current sync metrics
+   * 获取当前同步指标
    */
   getMetrics(): SyncMetrics[] {
     return Array.from(this.metrics.values());
   }
 
   /**
-   * Get sync status for all contracts
+   * 获取所有合约的同步状态
    */
   async getSyncStatus(): Promise<Array<{
     chainId: number;

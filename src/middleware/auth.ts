@@ -3,7 +3,7 @@ import jwt from '@fastify/jwt';
 import type { Logger } from '../utils/logger.js';
 
 /**
- * Authentication configuration
+ * 认证配置
  */
 export interface AuthConfig {
   enabled: boolean;
@@ -12,7 +12,7 @@ export interface AuthConfig {
 }
 
 /**
- * JWT payload structure
+ * JWT 载荷结构
  */
 export interface JwtPayload {
   sub: string;
@@ -22,7 +22,7 @@ export interface JwtPayload {
 }
 
 /**
- * Register JWT authentication plugin
+ * 注册 JWT 认证插件
  */
 export async function registerAuth(
   fastify: FastifyInstance,
@@ -34,19 +34,19 @@ export async function registerAuth(
     return;
   }
 
-  // Register JWT plugin
+  // 注册 JWT 插件
   await fastify.register(jwt, {
     secret: config.jwtSecret,
   });
 
-  // Add authentication hook for protected routes
+  // 为受保护的路由添加认证钩子
   fastify.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
-    // Skip excluded paths
+    // 跳过排除的路径
     if (isExcludedPath(request.url, config.excludePaths)) {
       return;
     }
 
-    // Skip health and metrics endpoints
+    // 跳过健康检查和指标端点
     if (request.url.startsWith('/health') || 
         request.url.startsWith('/ready') || 
         request.url === '/metrics' ||
@@ -71,7 +71,7 @@ export async function registerAuth(
 }
 
 /**
- * Check if path is excluded from authentication
+ * 检查路径是否被排除在认证之外
  */
 function isExcludedPath(url: string, excludePaths: string[]): boolean {
   const path = url.split('?')[0];
@@ -84,7 +84,7 @@ function isExcludedPath(url: string, excludePaths: string[]): boolean {
 }
 
 /**
- * Generate JWT token (for testing/admin purposes)
+ * 生成 JWT 令牌（用于测试/管理目的）
  */
 export function generateToken(
   fastify: FastifyInstance,
@@ -95,7 +95,7 @@ export function generateToken(
 }
 
 /**
- * Role-based access control middleware
+ * 基于角色的访问控制中间件
  */
 export function requireRole(...roles: string[]) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
@@ -122,11 +122,11 @@ export function requireRole(...roles: string[]) {
 }
 
 /**
- * Admin-only middleware
+ * 仅管理员中间件
  */
 export const requireAdmin = requireRole('admin');
 
 /**
- * Writer-or-above middleware
+ * 写入者及以上权限中间件
  */
 export const requireWriter = requireRole('admin', 'writer');

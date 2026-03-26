@@ -10,13 +10,13 @@ import type { Address } from 'viem';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
 /**
- * Main application entry point
+ * 应用程序主入口
  */
 async function main() {
-  // Load configuration
+  // 加载配置
   const config = loadConfig();
 
-  // Create logger
+  // 创建日志器
   const logger = createLogger(config.server.logLevel, 'indexer');
 
   logger.info(
@@ -28,18 +28,18 @@ async function main() {
     'Starting Web3 Indexer'
   );
 
-  // Initialize database
+  // 初始化数据库
   const db = getDb(logger);
 
-  // Initialize repositories
+  // 初始化仓库
   const syncStateRepo = new SyncStateRepository(db);
   const eventRepo = new EventRepository(db);
   const transferRepo = new TransferEventRepository(db);
 
-  // Initialize ERC20 event processor
+  // 初始化 ERC20 事件处理器
   const erc20Processor = new ERC20EventProcessor(db, logger);
 
-  // Create synchronizer with event processor
+  // 创建同步器并配置事件处理器
   const synchronizer = new Synchronizer(
     config,
     db,
@@ -70,7 +70,7 @@ async function main() {
     }
   );
 
-  // Start REST API server
+  // 启动 REST API 服务器
   const fastify = await startApiServer({
     port: config.server.port,
     logger,
@@ -80,22 +80,22 @@ async function main() {
     syncStateRepo,
   });
 
-  // Setup GraphQL endpoint
+  // 设置 GraphQL 端点
   const apolloServer = createGraphQLServer(db, logger, synchronizer);
 
-  // Start Apollo Server
+  // 启动 Apollo 服务器
   await apolloServer.start();
 
-  // Import HeaderMap dynamically
+  // 动态导入 HeaderMap
   const { HeaderMap } = await import('@apollo/server');
 
-  // Apply GraphQL middleware to Fastify
+  // 将 GraphQL 中间件应用到 Fastify
   fastify.post('/graphql', async (request: FastifyRequest, reply: FastifyReply) => {
     const context = createGraphQLContext(db, logger, synchronizer);
 
     const body = request.body as Record<string, unknown>;
-    
-    // Convert headers to HeaderMap for Apollo
+
+    // 将请求头转换为 Apollo 的 HeaderMap
     const headersMap = new HeaderMap();
     for (const [key, value] of Object.entries(request.headers)) {
       if (typeof value === 'string') {
@@ -104,7 +104,7 @@ async function main() {
         headersMap.set(key, value[0]);
       }
     }
-    
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await apolloServer.executeHTTPGraphQLRequest({
       httpGraphQLRequest: {
@@ -127,7 +127,7 @@ async function main() {
     if (result.body.kind === 'complete') {
       return result.body.string;
     } else {
-      // Handle chunked responses
+      // 处理分块响应
       let response = '';
       for await (const chunk of result.body.asyncIterator) {
         response += chunk;
@@ -136,7 +136,7 @@ async function main() {
     }
   });
 
-  // GraphQL Playground (development only)
+  // GraphQL Playground（仅开发环境）
   if (config.server.nodeEnv === 'development') {
     fastify.get('/graphql', async (_request: FastifyRequest, reply: FastifyReply) => {
       reply.type('text/html');
@@ -164,11 +164,11 @@ async function main() {
     });
   }
 
-  // Now start the server after all routes are added
+  // 所有路由添加完成后启动服务器
   await fastify.listen({ port: config.server.port, host: '0.0.0.0' });
   logger.info({ port: config.server.port }, 'REST API server started');
 
-  // Graceful shutdown
+  // 优雅关闭
   const shutdown = async (signal: string) => {
     logger.info({ signal }, 'Shutting down...');
 
@@ -184,12 +184,12 @@ async function main() {
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
 
-  // Start synchronizer
+  // 启动同步器
   logger.info('Starting synchronizer...');
   await synchronizer.start();
 }
 
-// Run main
+// 运行主函数
 main().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);

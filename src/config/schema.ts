@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Chain configuration schema for multi-chain support
+ * 链配置模式，用于多链支持
  */
 const chainConfigSchema = z.object({
   id: z.number(),
@@ -11,54 +11,54 @@ const chainConfigSchema = z.object({
 });
 
 /**
- * Environment variable schema with validation
+ * 环境变量模式及验证
  */
 const envSchema = z.object({
-  // Server
+  // 服务器配置
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform(Number).default('3000'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 
-  // Database
+  // 数据库配置
   DATABASE_URL: z.string().default('file:./dev.db'),
 
-  // Blockchain - Single chain (backward compatible)
+  // 区块链 - 单链配置（向后兼容）
   RPC_URL: z.string().optional(),
   CHAIN_ID: z.string().transform(Number).default('1'),
 
-  // Blockchain - Multi-chain (JSON array)
+  // 区块链 - 多链配置（JSON数组）
   CHAINS: z.string().optional(),
 
-  // Sync
+  // 同步配置
   START_BLOCK: z.string().transform(BigInt).default('0'),
   BATCH_SIZE: z.string().transform(Number).default('100'),
   CONFIRMATIONS: z.string().transform(Number).default('12'),
   SYNC_INTERVAL: z.string().transform(Number).default('1000'),
   MAX_CONCURRENT_REQUESTS: z.string().transform(Number).default('5'),
 
-  // Contracts (JSON string)
+  // 合约配置（JSON字符串）
   CONTRACTS: z.string().optional(),
 
-  // Authentication
+  // 认证配置
   AUTH_ENABLED: z.string().transform(val => val === 'true').default('false'),
   JWT_SECRET: z.string().optional(),
 
-  // Rate Limiting
+  // 限流配置
   RATE_LIMIT_ENABLED: z.string().transform(val => val === 'true').default('true'),
   RATE_LIMIT_MAX: z.string().transform(Number).default('100'),
   RATE_LIMIT_WINDOW: z.string().default('1 minute'),
 
-  // Redis (for distributed locking)
+  // Redis配置（用于分布式锁）
   REDIS_URL: z.string().optional(),
 });
 
 /**
- * Contract configuration schema
+ * 合约配置模式
  */
 const contractConfigSchema = z.object({
   name: z.string(),
   address: z.string().startsWith('0x'),
-  chainId: z.number().optional(), // Optional: defaults to first chain
+  chainId: z.number().optional(), // 可选：默认使用第一条链
   startBlock: z.union([
     z.number().transform(n => BigInt(n)),
     z.string().transform(s => BigInt(s)),
@@ -69,7 +69,7 @@ const contractConfigSchema = z.object({
 });
 
 /**
- * Parse and validate environment variables
+ * 解析并验证环境变量
  */
 export function parseEnv() {
   const result = envSchema.safeParse(process.env);
@@ -84,7 +84,7 @@ export function parseEnv() {
 }
 
 /**
- * Parse contracts configuration from JSON string
+ * 从JSON字符串解析合约配置
  */
 export function parseContractsConfig(contractsJson?: string) {
   if (!contractsJson) {
@@ -116,15 +116,15 @@ export type ContractConfigInput = z.infer<typeof contractConfigSchema>;
 export type ChainConfigInput = z.infer<typeof chainConfigSchema>;
 
 /**
- * Parse chains configuration from JSON string
- * Falls back to single chain configuration (RPC_URL + CHAIN_ID) for backward compatibility
+ * 从JSON字符串解析链配置
+ * 向后兼容单链配置（RPC_URL + CHAIN_ID）
  */
 export function parseChainsConfig(
   chainsJson?: string,
   defaultChainId?: number,
   defaultRpcUrl?: string
 ): ChainConfigInput[] {
-  // Priority 1: Multi-chain JSON config
+  // 优先级1：多链JSON配置
   if (chainsJson) {
     try {
       const parsed = JSON.parse(chainsJson);
@@ -133,17 +133,17 @@ export function parseChainsConfig(
       if (!result.success) {
         console.error('❌ Invalid chains configuration:');
         console.error(result.error.flatten().fieldErrors);
-        // Fall through to single chain fallback
+        // 回退到单链配置
       } else {
         return result.data;
       }
     } catch (error) {
       console.error('❌ Failed to parse CHAINS JSON:', error);
-      // Fall through to single chain fallback
+      // 回退到单链配置
     }
   }
 
-  // Priority 2: Single chain fallback (backward compatible)
+  // 优先级2：单链配置（向后兼容）
   if (defaultRpcUrl) {
     return [
       {
@@ -153,7 +153,7 @@ export function parseChainsConfig(
     ];
   }
 
-  // No chain configured
+  // 未配置链
   console.error('❌ No chain configuration found. Please set either CHAINS or RPC_URL.');
   return [];
 }

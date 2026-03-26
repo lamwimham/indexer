@@ -3,7 +3,7 @@ import rateLimit from '@fastify/rate-limit';
 import type { Logger } from '../utils/logger.js';
 
 /**
- * Rate limit configuration
+ * 速率限制配置
  */
 export interface RateLimitConfig {
   enabled: boolean;
@@ -14,7 +14,7 @@ export interface RateLimitConfig {
 }
 
 /**
- * Default rate limit configuration
+ * 默认速率限制配置
  */
 export const DEFAULT_RATE_LIMIT_CONFIG: RateLimitConfig = {
   enabled: true,
@@ -25,7 +25,7 @@ export const DEFAULT_RATE_LIMIT_CONFIG: RateLimitConfig = {
 };
 
 /**
- * Register rate limiting plugin
+ * 注册速率限制插件
  */
 export async function registerRateLimit(
   fastify: FastifyInstance,
@@ -44,12 +44,12 @@ export async function registerRateLimit(
     timeWindow: finalConfig.timeWindow,
     skipOnError: finalConfig.skipOnError,
     allowList: (req) => {
-      // Whitelist certain IPs
+      // 白名单特定 IP
       const ip = req.ip;
       return finalConfig.whitelist.includes(ip);
     },
     keyGenerator: (req) => {
-      // Use API key if present, otherwise use IP
+      // 如果存在 API 密钥则使用，否则使用 IP
       const apiKey = req.headers['x-api-key'];
       if (typeof apiKey === 'string') {
         return `apikey:${apiKey}`;
@@ -77,7 +77,7 @@ export async function registerRateLimit(
 }
 
 /**
- * Stricter rate limit for sensitive endpoints
+ * 敏感端点的更严格速率限制
  */
 export async function registerStrictRateLimit(
   fastify: FastifyInstance,

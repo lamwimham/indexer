@@ -10,11 +10,11 @@ import {
 import { typeDefs } from './schema.js';
 import { resolvers, type GraphQLContext } from './resolvers.js';
 
-// Re-export for convenience
+// 为方便使用而重新导出
 export { typeDefs, resolvers, GraphQLContext };
 
 /**
- * Create Apollo Server instance
+ * 创建 Apollo Server 实例
  */
 export function createGraphQLServer(
   _db: PrismaClient,
@@ -31,7 +31,7 @@ export function createGraphQLServer(
 }
 
 /**
- * Create context for GraphQL resolvers
+ * 为 GraphQL 解析器创建上下文
  */
 export function createGraphQLContext(
   db: PrismaClient,

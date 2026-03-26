@@ -7,7 +7,7 @@ describe('Retry Utils', () => {
       const start = Date.now();
       await sleep(100);
       const elapsed = Date.now() - start;
-      expect(elapsed).toBeGreaterThanOrEqual(90); // Allow some variance
+      expect(elapsed).toBeGreaterThanOrEqual(90); // 允许一定的误差
     });
   });
 
@@ -77,7 +77,7 @@ describe('Retry Utils', () => {
 
       const resultPromise = withRetry(fn, { initialDelay: 100, shouldRetry: isRetryableError });
 
-      // Fast-forward through delays
+      // 快进延迟时间
       await vi.runAllTimersAsync();
 
       const result = await resultPromise;
@@ -97,13 +97,13 @@ describe('Retry Utils', () => {
 
       const resultPromise = withRetry(fn, { maxRetries: 2, initialDelay: 100, shouldRetry: isRetryableError });
 
-      // Attach catch handler early to prevent unhandled rejection warning
+      // 提前附加 catch 处理器以防止未处理的拒绝警告
       resultPromise.catch(() => {});
 
       await vi.runAllTimersAsync();
 
       await expect(resultPromise).rejects.toThrow('ECONNREFUSED');
-      expect(fn).toHaveBeenCalledTimes(3); // initial + 2 retries
+      expect(fn).toHaveBeenCalledTimes(3); // 初始调用 + 2 次重试
     });
 
     it('should use exponential backoff', async () => {
@@ -115,7 +115,7 @@ describe('Retry Utils', () => {
       // Just verify that it eventually succeeds with retries
       const resultPromise = withRetry(fn, {
         maxRetries: 3,
-        initialDelay: 10,  // Use small delay for faster test
+        initialDelay: 10,  // 使用较小的延迟以加快测试速度
         backoffMultiplier: 2,
         shouldRetry: isRetryableError
       });
@@ -124,7 +124,7 @@ describe('Retry Utils', () => {
       const result = await resultPromise;
 
       expect(result).toBe('success');
-      expect(fn).toHaveBeenCalledTimes(3); // initial + 2 retries
+      expect(fn).toHaveBeenCalledTimes(3); // 初始调用 + 2 次重试
     });
   });
 });

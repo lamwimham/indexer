@@ -4,7 +4,7 @@ import type { Logger } from '../utils/logger.js';
 import { withRetry, isRetryableError } from '../utils/retry.js';
 
 /**
- * Fetched block data with logs
+ * 获取的区块数据及其日志
  */
 export interface FetchedBlock {
   block: Block;
@@ -12,7 +12,7 @@ export interface FetchedBlock {
 }
 
 /**
- * Block fetcher with batching and retry support
+ * 区块获取器，支持批处理和重试
  */
 export class BlockFetcher {
   private rpcClient: RpcClient;
@@ -30,7 +30,7 @@ export class BlockFetcher {
   }
 
   /**
-   * Fetch a single block with logs
+   * 获取单个区块及其日志
    */
   async fetchBlock(blockNumber: bigint): Promise<FetchedBlock> {
     return withRetry(
@@ -55,7 +55,7 @@ export class BlockFetcher {
   }
 
   /**
-   * Fetch a range of blocks with logs
+   * 获取一个区块范围及其日志
    */
   async fetchBlockRange(
     fromBlock: bigint,
@@ -68,7 +68,7 @@ export class BlockFetcher {
       'Fetching block range'
     );
 
-    // Fetch logs for the entire range at once (more efficient)
+    // 一次性获取整个范围的日志（更高效）
     const logs = await withRetry(
       () =>
         this.rpcClient.getLogs({
@@ -84,13 +84,13 @@ export class BlockFetcher {
       }
     );
 
-    // Fetch block headers (without transactions) for timestamps
+    // 获取区块头（不含交易）以获取时间戳
     const blockNumbers = Array.from(
       { length: blockCount },
       (_, i) => fromBlock + BigInt(i)
     );
 
-    // Fetch blocks in batches to avoid overwhelming the RPC
+    // 分批获取区块以避免压垮RPC
     const blocks: Block[] = [];
     for (let i = 0; i < blockNumbers.length; i += this.maxConcurrentRequests) {
       const batch = blockNumbers.slice(i, i + this.maxConcurrentRequests);
@@ -110,7 +110,7 @@ export class BlockFetcher {
       blocks.push(...batchBlocks);
     }
 
-    // Group logs by block number
+    // 按区块号对日志进行分组
     const logsByBlock = new Map<bigint, Log[]>();
     for (const log of logs) {
       const blockNum = log.blockNumber;
@@ -120,7 +120,7 @@ export class BlockFetcher {
       logsByBlock.get(blockNum)!.push(log);
     }
 
-    // Combine blocks with their logs
+    // 将区块与其日志合并
     return blocks.map((block) => ({
       block,
       logs: logsByBlock.get(block.number!) ?? [],
@@ -128,7 +128,7 @@ export class BlockFetcher {
   }
 
   /**
-   * Get latest block number with confirmations
+   * 获取带确认数的最新区块号
    */
   async getLatestBlockWithConfirmations(confirmations: number): Promise<bigint> {
     const latestBlock = await this.rpcClient.getLatestBlockNumber();
@@ -136,7 +136,7 @@ export class BlockFetcher {
   }
 
   /**
-   * Check for chain reorganization
+   * 检查链重组
    */
   async checkReorg(blockNumber: bigint, expectedHash: string): Promise<boolean> {
     try {

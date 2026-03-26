@@ -2,13 +2,13 @@ import type { PrismaClient } from '@prisma/client';
 import type { Address } from 'viem';
 
 /**
- * Repository for sync state management
+ * 同步状态管理仓库
  */
 export class SyncStateRepository {
   constructor(private db: PrismaClient) {}
 
   /**
-   * Get sync state for a contract
+   * 获取合约的同步状态
    */
   async get(chainId: number, contractAddress: Address) {
     return this.db.syncState.findUnique({
@@ -22,14 +22,14 @@ export class SyncStateRepository {
   }
 
   /**
-   * Get all sync states
+   * 获取所有同步状态
    */
   async getAll() {
     return this.db.syncState.findMany();
   }
 
   /**
-   * Create or update sync state
+   * 创建或更新同步状态
    */
   async upsert(
     chainId: number,
@@ -64,7 +64,7 @@ export class SyncStateRepository {
   }
 
   /**
-   * Set syncing flag
+   * 设置同步标志
    */
   async setSyncing(chainId: number, contractAddress: Address, isSyncing: boolean) {
     return this.db.syncState.update({
@@ -79,7 +79,7 @@ export class SyncStateRepository {
   }
 
   /**
-   * Record error
+   * 记录错误
    */
   async recordError(chainId: number, contractAddress: Address, error: string) {
     return this.db.syncState.update({

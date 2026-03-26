@@ -1,75 +1,75 @@
 import type { Address, Log } from 'viem';
 
 /**
- * Contract configuration for indexing
+ * 索引器合约配置
  */
 export interface ContractConfig {
-  /** Human-readable name for the contract */
+  /** 合约的可读名称 */
   name: string;
-  /** Contract address */
+  /** 合约地址 */
   address: Address;
-  /** Block number to start indexing from */
+  /** 开始索引的区块号 */
   startBlock: bigint;
-  /** Chain ID this contract is deployed on */
+  /** 合约部署的链ID */
   chainId?: number;
-  /** Contract ABI (can be loaded from file) */
+  /** 合约ABI（可从文件加载） */
   abi?: unknown[];
-  /** Events to index (if not specified, all events are indexed) */
+  /** 要索引的事件（如未指定，则索引所有事件） */
   events?: string[];
 }
 
 /**
- * Chain configuration
+ * 链配置
  */
 export interface ChainConfig {
-  /** Chain ID */
+  /** 链ID */
   id: number;
-  /** Chain name */
+  /** 链名称 */
   name: string;
   /** RPC URL */
   rpcUrl: string;
-  /** Block time in milliseconds (for estimating sync progress) */
+  /** 区块时间（毫秒），用于估算同步进度 */
   blockTime?: number;
 }
 
 /**
- * Sync configuration
+ * 同步配置
  */
 export interface SyncConfig {
-  /** Starting block number */
+  /** 起始区块号 */
   startBlock: bigint;
-  /** Number of blocks to fetch per batch */
+  /** 每批次获取的区块数量 */
   batchSize: number;
-  /** Number of confirmations before considering a block final */
+  /** 认定区块为最终确认所需的确认数 */
   confirmations: number;
-  /** Interval between sync cycles in milliseconds */
+  /** 同步周期间隔（毫秒） */
   syncInterval: number;
-  /** Maximum concurrent RPC requests */
+  /** 最大并发RPC请求数 */
   maxConcurrentRequests: number;
 }
 
 /**
- * Database configuration
+ * 数据库配置
  */
 export interface DatabaseConfig {
-  /** Database connection URL */
+  /** 数据库连接URL */
   url: string;
 }
 
 /**
- * Server configuration
+ * 服务器配置
  */
 export interface ServerConfig {
-  /** Server port */
+  /** 服务器端口 */
   port: number;
-  /** Node environment */
+  /** Node环境 */
   nodeEnv: 'development' | 'production' | 'test';
-  /** Log level */
+  /** 日志级别 */
   logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 }
 
 /**
- * Full indexer configuration
+ * 完整的索引器配置
  */
 export interface IndexerConfig {
   server: ServerConfig;
@@ -80,7 +80,7 @@ export interface IndexerConfig {
 }
 
 /**
- * Sync state stored in database
+ * 存储在数据库中的同步状态
  */
 export interface SyncState {
   id: string;
@@ -94,7 +94,7 @@ export interface SyncState {
 }
 
 /**
- * Indexed event data
+ * 已索引的事件数据
  */
 export interface IndexedEvent {
   id: string;
@@ -113,7 +113,7 @@ export interface IndexedEvent {
 }
 
 /**
- * Event handler function type
+ * 事件处理函数类型
  */
 export type EventHandler<TArgs = Record<string, unknown>> = (
   event: {
@@ -130,17 +130,17 @@ export type EventHandler<TArgs = Record<string, unknown>> = (
 ) => Promise<void> | void;
 
 /**
- * Handler context with database access
+ * 处理器上下文，提供数据库访问
  */
 export interface HandlerContext {
-  /** Prisma client for database operations */
+  /** 用于数据库操作的Prisma客户端 */
   db: import('@prisma/client').PrismaClient;
-  /** Logger instance */
+  /** 日志实例 */
   logger: import('pino').Logger;
 }
 
 /**
- * Reorg event data
+ * 区块重组事件数据
  */
 export interface ReorgEvent {
   chainId: number;
@@ -150,7 +150,7 @@ export interface ReorgEvent {
 }
 
 /**
- * Metrics for monitoring
+ * 监控指标
  */
 export interface SyncMetrics {
   chainId: number;
@@ -161,5 +161,5 @@ export interface SyncMetrics {
   eventsProcessed: number;
   errors: number;
   lastSyncTime: Date;
-  syncSpeed: number; // blocks per second
+  syncSpeed: number; // 每秒处理的区块数
 }

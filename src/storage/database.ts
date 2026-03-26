@@ -2,12 +2,12 @@ import { PrismaClient } from '@prisma/client';
 import type { Logger } from '../utils/logger.js';
 
 /**
- * Database client singleton
+ * 数据库客户端单例
  */
 let prisma: PrismaClient | undefined;
 
 /**
- * Get or create Prisma client
+ * 获取或创建 Prisma 客户端
  */
 export function getDb(logger?: Logger): PrismaClient {
   if (prisma) {
@@ -16,7 +16,7 @@ export function getDb(logger?: Logger): PrismaClient {
 
   prisma = new PrismaClient();
 
-  // Log queries in development
+  // 在开发环境下记录查询日志
   if (logger && process.env.NODE_ENV === 'development') {
     prisma.$on('query' as never, (e: never) => {
       const queryEvent = e as { query: string; duration: number };
@@ -36,7 +36,7 @@ export function getDb(logger?: Logger): PrismaClient {
 }
 
 /**
- * Disconnect from database
+ * 断开数据库连接
  */
 export async function disconnectDb(): Promise<void> {
   if (prisma) {
@@ -46,7 +46,7 @@ export async function disconnectDb(): Promise<void> {
 }
 
 /**
- * Health check for database connection
+ * 数据库连接健康检查
  */
 export async function checkDbHealth(): Promise<boolean> {
   try {

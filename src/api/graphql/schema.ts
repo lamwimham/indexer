@@ -1,20 +1,20 @@
 /**
- * GraphQL Schema definitions
+ * GraphQL Schema 定义
  */
 export const typeDefs = `#graphql` + `
   # ============================================
-  # Scalars
+  # 标量
   # ============================================
 
   scalar DateTime
   scalar JSON
 
   # ============================================
-  # Types
+  # 类型
   # ============================================
 
   """
-  Sync status for a contract
+  合约的同步状态
   """
   type SyncStatus {
     chainId: Int!
@@ -27,7 +27,7 @@ export const typeDefs = `#graphql` + `
   }
 
   """
-  Sync metrics
+  同步指标
   """
   type SyncMetrics {
     chainId: Int!
@@ -41,7 +41,7 @@ export const typeDefs = `#graphql` + `
   }
 
   """
-  Generic indexed event
+  通用索引事件
   """
   type Event {
     id: ID!
@@ -60,7 +60,7 @@ export const typeDefs = `#graphql` + `
   }
 
   """
-  ERC20 Transfer event
+  ERC20 Transfer 事件
   """
   type TransferEvent {
     id: ID!
@@ -82,7 +82,7 @@ export const typeDefs = `#graphql` + `
   }
 
   """
-  ERC20 Approval event
+  ERC20 Approval 事件
   """
   type ApprovalEvent {
     id: ID!
@@ -104,7 +104,7 @@ export const typeDefs = `#graphql` + `
   }
 
   """
-  Sync state stored in database
+  存储在数据库中的同步状态
   """
   type SyncState {
     id: ID!
@@ -120,7 +120,7 @@ export const typeDefs = `#graphql` + `
   }
 
   """
-  Contract with its events
+  合约及其事件
   """
   type Contract {
     address: String!
@@ -157,7 +157,7 @@ export const typeDefs = `#graphql` + `
   }
 
   """
-  Address with its transfer history
+  地址及其转账历史
   """
   type Address {
     address: String!
@@ -171,7 +171,7 @@ export const typeDefs = `#graphql` + `
   }
 
   # ============================================
-  # Enums
+  # 枚举
   # ============================================
 
   enum EventOrderBy {
@@ -191,7 +191,7 @@ export const typeDefs = `#graphql` + `
   }
 
   # ============================================
-  # Inputs
+  # 输入类型
   # ============================================
 
   input EventFilter {
@@ -212,37 +212,37 @@ export const typeDefs = `#graphql` + `
   }
 
   # ============================================
-  # Queries
+  # 查询
   # ============================================
 
   type Query {
     """
-    Get sync status for all contracts
+    获取所有合约的同步状态
     """
     syncStatus: [SyncStatus!]!
 
     """
-    Get sync metrics
+    获取同步指标
     """
     syncMetrics: [SyncMetrics!]!
 
     """
-    Get all sync states
+    获取所有同步状态
     """
     syncStates: [SyncState!]!
 
     """
-    Get a specific contract by address
+    根据地址获取特定合约
     """
     contract(chainId: Int!, address: String!): Contract
 
     """
-    Get all contracts
+    获取所有合约
     """
     contracts(chainId: Int): [Contract!]!
 
     """
-    Query events with filters
+    根据条件查询事件
     """
     events(
       filter: EventFilter
@@ -253,12 +253,12 @@ export const typeDefs = `#graphql` + `
     ): [Event!]!
 
     """
-    Count events with filters
+    根据条件统计事件数量
     """
     eventCount(filter: EventFilter): Int!
 
     """
-    Query transfer events with filters
+    根据条件查询转账事件
     """
     transfers(
       filter: TransferFilter
@@ -269,12 +269,12 @@ export const typeDefs = `#graphql` + `
     ): [TransferEvent!]!
 
     """
-    Count transfer events with filters
+    根据条件统计转账事件数量
     """
     transferCount(filter: TransferFilter): Int!
 
     """
-    Get address with transfer history
+    获取地址及其转账历史
     """
     address(chainId: Int!, address: String!): Address!
   }

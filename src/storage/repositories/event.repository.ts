@@ -2,13 +2,13 @@ import type { PrismaClient } from '@prisma/client';
 import type { Address } from 'viem';
 
 /**
- * Repository for event storage
+ * 事件存储仓库
  */
 export class EventRepository {
   constructor(private db: PrismaClient) {}
 
   /**
-   * Insert a batch of events
+   * 批量插入事件
    */
   async insertBatch(events: Array<{
     chainId: number;
@@ -43,7 +43,7 @@ export class EventRepository {
   }
 
   /**
-   * Mark events as removed (for reorg handling)
+   * 标记事件为已移除（用于重组处理）
    */
   async markAsRemoved(
     chainId: number,
@@ -60,7 +60,7 @@ export class EventRepository {
   }
 
   /**
-   * Delete events in block range (hard delete for reorg)
+   * 删除指定区块范围内的事件（用于重组的硬删除）
    */
   async deleteByBlockRange(
     chainId: number,
@@ -76,7 +76,7 @@ export class EventRepository {
   }
 
   /**
-   * Query events with filters
+   * 根据条件查询事件
    */
   async query(filters: {
     chainId?: number;
@@ -122,7 +122,7 @@ export class EventRepository {
   }
 
   /**
-   * Get event count with filters
+   * 根据条件统计事件数量
    */
   async count(filters: {
     chainId?: number;
@@ -146,7 +146,7 @@ export class EventRepository {
   }
 
   /**
-   * Get unique event names for a contract
+   * 获取合约的唯一事件名称列表
    */
   async getEventNames(chainId: number, contractAddress: Address) {
     const result = await this.db.event.findMany({

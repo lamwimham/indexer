@@ -2,7 +2,7 @@ import pino from 'pino';
 import type { Level } from 'pino';
 
 /**
- * Create a structured logger instance
+ * 创建结构化日志实例
  */
 export function createLogger(level: Level = 'info', name = 'indexer') {
   const isDev = process.env.NODE_ENV !== 'production';
@@ -33,7 +33,7 @@ export function createLogger(level: Level = 'info', name = 'indexer') {
 }
 
 /**
- * Create a child logger with additional context
+ * 创建带有额外上下文的子日志器
  */
 export function createChildLogger(
   parent: pino.Logger,
@@ -43,6 +43,6 @@ export function createChildLogger(
 }
 
 /**
- * Logger type export
+ * 日志器类型导出
  */
 export type Logger = pino.Logger;

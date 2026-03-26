@@ -5,7 +5,7 @@ import type { Synchronizer } from '../../src/sync/index.js';
 import type { EventRepository, TransferEventRepository, SyncStateRepository } from '../../src/storage/index.js';
 import type { Logger } from '../../src/utils/logger.js';
 
-// Mock checkDbHealth before importing server
+// 在导入服务器之前模拟 checkDbHealth
 vi.mock('../../src/storage/index.js', () => ({
   checkDbHealth: vi.fn().mockResolvedValue(true),
   SyncStateRepository: vi.fn(),
@@ -14,7 +14,7 @@ vi.mock('../../src/storage/index.js', () => ({
   TransferEventRepository: vi.fn(),
 }));
 
-// Mock logger
+// 模拟日志器
 const mockLogger = {
   child: vi.fn().mockReturnThis(),
   debug: vi.fn(),
@@ -70,7 +70,7 @@ describe('API Integration Tests', () => {
           contractAddress: '0x1234',
           contractName: 'TestToken',
           eventName: 'Transfer',
-          blockNumber: '100',  // String, not bigint
+          blockNumber: '100',  // 字符串，非 bigint
           blockTimestamp: new Date(),
           txHash: '0xabc',
           logIndex: 0,
@@ -91,10 +91,10 @@ describe('API Integration Tests', () => {
           tokenSymbol: 'TT',
           from: '0x1111',
           to: '0x2222',
-          value: '1000',  // String, not bigint
+          value: '1000',  // 字符串，非 bigint
           valueFormatted: 0.001,
           decimals: 18,
-          blockNumber: '100',  // String, not bigint
+          blockNumber: '100',  // 字符串，非 bigint
           blockTimestamp: new Date(),
           txHash: '0xabc',
           logIndex: 0,
@@ -111,7 +111,7 @@ describe('API Integration Tests', () => {
           chainId: 1,
           contractAddress: '0x1234',
           contractName: 'TestToken',
-          lastSyncedBlock: '1000',  // String, not bigint
+          lastSyncedBlock: '1000',  // 字符串，非 bigint
           lastSyncedAt: new Date(),
           isSyncing: false,
           lastError: null,

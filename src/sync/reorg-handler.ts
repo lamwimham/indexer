@@ -3,7 +3,7 @@ import type { BlockCheckpointRepository, EventRepository, TransferEventRepositor
 import type { RpcClient } from './rpc-client.js';
 
 /**
- * Reorg handler for detecting and handling chain reorganizations
+ * 重组处理器，用于检测和处理链重组
  */
 export class ReorgHandler {
   private rpcClient: RpcClient;
@@ -30,7 +30,7 @@ export class ReorgHandler {
   }
 
   /**
-   * Check for reorg by comparing stored checkpoints with current chain
+   * 通过比较存储的检查点与当前链来检测重组
    */
   async detectReorg(chainId: number): Promise<{
     hasReorg: boolean;
@@ -43,7 +43,7 @@ export class ReorgHandler {
       return { hasReorg: false, reorgDepth: 0, lastValidBlock: null };
     }
 
-    // Check the last few checkpoints for reorg
+    // 检查最近的几个检查点是否有重组
     const checkDepth = Math.min(this.confirmations, 50);
     const latestBlockNumber = BigInt(latestCheckpoint.blockNumber);
     const startBlock = latestBlockNumber - BigInt(checkDepth);
@@ -68,7 +68,7 @@ export class ReorgHandler {
           'Reorg detected'
         );
 
-        // Find the last valid block
+        // 查找最后一个有效区块
         const lastValid = await this.findLastValidBlock(chainId, checkpointBlockNumber);
 
         return {
@@ -83,7 +83,7 @@ export class ReorgHandler {
   }
 
   /**
-   * Find the last valid block before reorg
+   * 查找重组前的最后一个有效区块
    */
   private async findLastValidBlock(
     chainId: number,
@@ -113,7 +113,7 @@ export class ReorgHandler {
   }
 
   /**
-   * Handle reorg by rolling back data
+   * 通过回滚数据来处理重组
    */
   async handleReorg(
     chainId: number,
@@ -124,7 +124,7 @@ export class ReorgHandler {
       'Handling reorg - rolling back data'
     );
 
-    // Get the latest checkpoint to determine the extent of rollback
+    // 获取最新检查点以确定回滚范围
     const latestCheckpoint = await this.checkpointRepo.getLatest(chainId);
     if (!latestCheckpoint) {
       this.logger.warn('No checkpoints found, nothing to roll back');
@@ -138,15 +138,15 @@ export class ReorgHandler {
       return;
     }
 
-    // Delete events in the reorged range
+    // 删除重组范围内的事件
     await this.eventRepo.deleteByBlockRange(chainId, fromBlock, toBlock);
 
-    // Delete transfer events if repository exists
+    // 如果存在转账事件仓库，则删除转账事件
     if (this.transferRepo) {
       await this.transferRepo.deleteByBlockRange(chainId, fromBlock, toBlock);
     }
 
-    // Delete checkpoints in the reorged range
+    // 删除重组范围内的检查点
     await this.checkpointRepo.deleteRange(chainId, fromBlock, toBlock);
 
     this.logger.info(
@@ -160,7 +160,7 @@ export class ReorgHandler {
   }
 
   /**
-   * Save block checkpoint for reorg detection
+   * 保存区块检查点用于重组检测
    */
   async saveCheckpoint(
     chainId: number,

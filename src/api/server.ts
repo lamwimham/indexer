@@ -7,7 +7,7 @@ import { checkDbHealth } from '../storage/index.js';
 import { getMetrics } from '../monitoring/index.js';
 
 /**
- * API server options
+ * API 服务器选项
  */
 export interface ApiServerOptions {
   port: number;
@@ -19,25 +19,25 @@ export interface ApiServerOptions {
 }
 
 /**
- * Create and configure Fastify server
+ * 创建并配置 Fastify 服务器
  */
 export async function createApiServer(options: ApiServerOptions) {
   const { synchronizer, eventRepo, transferRepo, syncStateRepo } = options;
 
   const fastify = Fastify({
-    logger: false, // Use our own logger
+    logger: false, // 使用我们自己的日志器
     requestIdHeader: 'x-request-id',
     requestIdLogLabel: 'reqId',
   });
 
-  // Register CORS
+  // 注册 CORS
   await fastify.register(cors, {
     origin: true,
     methods: ['GET', 'POST', 'OPTIONS'],
   });
 
   // ============================================
-  // Health Check Routes
+  // 健康检查路由
   // ============================================
 
   fastify.get('/health', async (_request, reply) => {
@@ -63,7 +63,7 @@ export async function createApiServer(options: ApiServerOptions) {
   });
 
   // ============================================
-  // Prometheus Metrics Route
+  // Prometheus 指标路由
   // ============================================
 
   fastify.get('/metrics', async (_request, reply) => {
@@ -73,7 +73,7 @@ export async function createApiServer(options: ApiServerOptions) {
   });
 
   // ============================================
-  // Sync Status Routes
+  // 同步状态路由
   // ============================================
 
   fastify.get('/api/v1/sync/status', async () => {
@@ -110,7 +110,7 @@ export async function createApiServer(options: ApiServerOptions) {
   });
 
   // ============================================
-  // Events Routes
+  // 事件路由
   // ============================================
 
   fastify.get('/api/v1/events', async (request, _reply) => {
@@ -187,7 +187,7 @@ export async function createApiServer(options: ApiServerOptions) {
   });
 
   // ============================================
-  // Transfer Events Routes
+  // 转账事件路由
   // ============================================
 
   fastify.get('/api/v1/transfers', async (request, _reply) => {
@@ -270,7 +270,7 @@ export async function createApiServer(options: ApiServerOptions) {
   });
 
   // ============================================
-  // Sync States Routes
+  // 同步状态路由
   // ============================================
 
   fastify.get('/api/v1/sync-states', async () => {
@@ -304,15 +304,15 @@ export async function createApiServer(options: ApiServerOptions) {
 }
 
 /**
- * Start the API server
+ * 启动 API 服务器
  */
 export async function startApiServer(options: ApiServerOptions): Promise<ReturnType<typeof Fastify>> {
   const { port, logger } = options;
 
   const fastify = await createApiServer(options);
 
-  // Note: Don't call listen() here - let the caller add routes first
-  // The caller should call fastify.listen({ port, host: '0.0.0.0' }) after adding all routes
+  // 注意：不要在这里调用 listen() - 让调用者先添加路由
+  // 调用者应该在添加所有路由后调用 fastify.listen({ port, host: '0.0.0.0' })
   logger.info({ port }, 'REST API server created');
 
   return fastify;

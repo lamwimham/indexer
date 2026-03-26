@@ -2,7 +2,7 @@ import { config as dotenvConfig } from 'dotenv';
 import type { Logger } from '../utils/logger.js';
 
 /**
- * Secrets provider configuration
+ * 密钥提供者配置
  */
 export interface SecretsConfig {
   provider: 'env' | 'aws' | 'gcp' | 'azure' | 'vault';
@@ -13,14 +13,14 @@ export interface SecretsConfig {
 }
 
 /**
- * Secrets cache
+ * 密钥缓存
  */
 interface SecretsCache {
   [key: string]: string;
 }
 
 /**
- * Secrets manager for production deployments
+ * 生产环境部署的密钥管理器
  */
 export class SecretsManager {
   private config: SecretsConfig;
@@ -34,7 +34,7 @@ export class SecretsManager {
   }
 
   /**
-   * Initialize the secrets manager
+   * 初始化密钥管理器
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
@@ -66,22 +66,22 @@ export class SecretsManager {
   }
 
   /**
-   * Load secrets from environment variables
+   * 从环境变量加载密钥
    */
   private async loadFromEnv(): Promise<void> {
     this.logger.info('Loading secrets from environment variables');
     dotenvConfig();
-    
-    // All env vars are already loaded
+
+    // 所有环境变量已加载
     this.initialized = true;
   }
 
   /**
-   * Load secrets from AWS Secrets Manager
+   * 从 AWS Secrets Manager 加载密钥
    */
   private async loadFromAws(): Promise<void> {
     try {
-      // Dynamic import to avoid bundling AWS SDK when not needed
+      // 动态导入以避免在不需要时打包 AWS SDK
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
 
@@ -102,17 +102,17 @@ export class SecretsManager {
       }
     } catch (error) {
       this.logger.error({ error }, 'Failed to load secrets from AWS Secrets Manager');
-      // Fall back to environment variables
+      // 回退到环境变量
       await this.loadFromEnv();
     }
   }
 
   /**
-   * Load secrets from GCP Secret Manager
+   * 从 GCP Secret Manager 加载密钥
    */
   private async loadFromGcp(): Promise<void> {
     try {
-      // Dynamic import to avoid bundling GCP SDK when not needed
+      // 动态导入以避免在不需要时打包 GCP SDK
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 
@@ -138,11 +138,11 @@ export class SecretsManager {
   }
 
   /**
-   * Load secrets from Azure Key Vault
+   * 从 Azure Key Vault 加载密钥
    */
   private async loadFromAzure(): Promise<void> {
     try {
-      // Dynamic import to avoid bundling Azure SDK when not needed
+      // 动态导入以避免在不需要时打包 Azure SDK
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { DefaultAzureCredential } = require('@azure/identity');
       // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -154,8 +154,8 @@ export class SecretsManager {
       }
 
       const client = new SecretClient(vaultUrl, new DefaultAzureCredential());
-      
-      // List and load all secrets
+
+      // 列出并加载所有密钥
       for await (const secretProperties of client.listPropertiesOfSecrets()) {
         const secret = await client.getSecret(secretProperties.name);
         if (secret.value) {
@@ -171,7 +171,7 @@ export class SecretsManager {
   }
 
   /**
-   * Load secrets from HashiCorp Vault
+   * 从 HashiCorp Vault 加载密钥
    */
   private async loadFromVault(): Promise<void> {
     try {
@@ -204,20 +204,20 @@ export class SecretsManager {
   }
 
   /**
-   * Get a secret value
+   * 获取密钥值
    */
   get(key: string): string | undefined {
-    // First check cache (from secrets manager)
+    // 首先检查缓存（来自密钥管理器）
     if (this.cache[key]) {
       return this.cache[key];
     }
 
-    // Fall back to environment variable
+    // 回退到环境变量
     return process.env[key];
   }
 
   /**
-   * Get a secret value or throw
+   * 获取密钥值或抛出异常
    */
   getOrThrow(key: string): string {
     const value = this.get(key);
@@ -228,28 +228,28 @@ export class SecretsManager {
   }
 
   /**
-   * Get a secret value with default
+   * 获取密钥值或使用默认值
    */
   getOrDefault(key: string, defaultValue: string): string {
     return this.get(key) ?? defaultValue;
   }
 
   /**
-   * Check if a secret exists
+   * 检查密钥是否存在
    */
   has(key: string): boolean {
     return !!this.get(key);
   }
 
   /**
-   * Set a secret in cache (for testing)
+   * 在缓存中设置密钥（用于测试）
    */
   set(key: string, value: string): void {
     this.cache[key] = value;
   }
 
   /**
-   * Clear the cache
+   * 清除缓存
    */
   clear(): void {
     this.cache = {};
@@ -257,7 +257,7 @@ export class SecretsManager {
 }
 
 /**
- * Create a secrets manager instance
+ * 创建密钥管理器实例
  */
 export function createSecretsManager(
   config: SecretsConfig,
@@ -267,19 +267,19 @@ export function createSecretsManager(
 }
 
 /**
- * Global secrets manager instance
+ * 全局密钥管理器实例
  */
 let globalSecretsManager: SecretsManager | null = null;
 
 /**
- * Get the global secrets manager
+ * 获取全局密钥管理器
  */
 export function getSecretsManager(): SecretsManager | null {
   return globalSecretsManager;
 }
 
 /**
- * Initialize the global secrets manager
+ * 初始化全局密钥管理器
  */
 export async function initializeSecrets(
   config: SecretsConfig,

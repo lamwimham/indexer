@@ -2,17 +2,17 @@ import { config as dotenvConfig } from 'dotenv';
 import { parseEnv, parseContractsConfig, parseChainsConfig } from './schema.js';
 import type { IndexerConfig, ChainConfig, ContractConfig } from '../types/index.js';
 
-// Load .env file
+// 加载 .env 文件
 dotenvConfig();
 
 /**
- * Load and validate configuration
+ * 加载并验证配置
  */
 export function loadConfig(): IndexerConfig {
   const env = parseEnv();
   const contracts = parseContractsConfig(env.CONTRACTS);
 
-  // Parse chains configuration (supports multi-chain)
+  // 解析链配置（支持多链）
   const chainConfigs = parseChainsConfig(env.CHAINS, env.CHAIN_ID, env.RPC_URL);
 
   if (chainConfigs.length === 0) {
@@ -20,7 +20,7 @@ export function loadConfig(): IndexerConfig {
     process.exit(1);
   }
 
-  // Build chain configurations with names and block times
+  // 构建链配置，包含名称和区块时间
   const chains: ChainConfig[] = chainConfigs.map(c => ({
     id: c.id,
     name: c.name ?? getChainName(c.id),
@@ -28,12 +28,12 @@ export function loadConfig(): IndexerConfig {
     blockTime: c.blockTime ?? getChainBlockTime(c.id),
   }));
 
-  // Build contract configurations
+  // 构建合约配置
   const defaultChainId = chains[0].id;
   const contractConfigs: ContractConfig[] = contracts.map(c => ({
     name: c.name,
     address: c.address as `0x${string}`,
-    chainId: c.chainId ?? defaultChainId, // Default to first chain if not specified
+    chainId: c.chainId ?? defaultChainId, // 如未指定，默认使用第一条链
     startBlock: c.startBlock,
     abi: c.abi,
     events: c.events,
@@ -61,7 +61,7 @@ export function loadConfig(): IndexerConfig {
 }
 
 /**
- * Get chain name by chain ID
+ * 根据链ID获取链名称
  */
 function getChainName(chainId: number): string {
   const chainNames: Record<number, string> = {
@@ -78,24 +78,24 @@ function getChainName(chainId: number): string {
 }
 
 /**
- * Get average block time by chain ID (in milliseconds)
+ * 根据链ID获取平均区块时间（毫秒）
  */
 function getChainBlockTime(chainId: number): number {
   const blockTimes: Record<number, number> = {
-    1: 12000,      // Ethereum: ~12s
-    5: 12000,      // Goerli: ~12s
-    11155111: 12000, // Sepolia: ~12s
-    137: 2000,     // Polygon: ~2s
-    42161: 250,    // Arbitrum: ~0.25s
-    10: 2000,      // Optimism: ~2s
-    56: 3000,      // BSC: ~3s
-    43114: 2000,   // Avalanche: ~2s
+    1: 12000,      // Ethereum: 约12秒
+    5: 12000,      // Goerli: 约12秒
+    11155111: 12000, // Sepolia: 约12秒
+    137: 2000,     // Polygon: 约2秒
+    42161: 250,    // Arbitrum: 约0.25秒
+    10: 2000,      // Optimism: 约2秒
+    56: 3000,      // BSC: 约3秒
+    43114: 2000,   // Avalanche: 约2秒
   };
   return blockTimes[chainId] || 12000;
 }
 
 /**
- * Get RPC URL for a chain
+ * 获取指定链的RPC URL
  */
 export function getRpcUrl(config: IndexerConfig, chainId: number): string {
   const chain = config.chains.find(c => c.id === chainId);
@@ -106,7 +106,7 @@ export function getRpcUrl(config: IndexerConfig, chainId: number): string {
 }
 
 /**
- * Get contracts for a specific chain
+ * 获取指定链的合约配置
  */
 export function getContractsForChain(
   config: IndexerConfig,

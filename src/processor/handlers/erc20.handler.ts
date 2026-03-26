@@ -5,7 +5,7 @@ import type { HandlerContext } from '../../types/index.js';
 import { EventProcessor, createEventSignature } from '../event-processor.js';
 
 /**
- * ERC20 ABI for Transfer and Approval events
+ * ERC20 ABI，包含 Transfer 和 Approval 事件
  */
 export const ERC20_ABI: Abi = [
   {
@@ -31,7 +31,7 @@ export const ERC20_ABI: Abi = [
 ];
 
 /**
- * Uniswap V3 Pool ABI for Swap, Mint, Burn, Collect events
+ * Uniswap V3 Pool ABI，包含 Swap、Mint、Burn、Collect 事件
  */
 export const UNISWAP_V3_POOL_ABI: Abi = [
   {
@@ -91,7 +91,7 @@ export const UNISWAP_V3_POOL_ABI: Abi = [
 ];
 
 /**
- * Transfer event args
+ * Transfer 事件参数
  */
 export interface TransferArgs {
   from: `0x${string}`;
@@ -100,7 +100,7 @@ export interface TransferArgs {
 }
 
 /**
- * Approval event args
+ * Approval 事件参数
  */
 export interface ApprovalArgs {
   owner: `0x${string}`;
@@ -109,7 +109,7 @@ export interface ApprovalArgs {
 }
 
 /**
- * Swap event args (Uniswap V3)
+ * Swap 事件参数（Uniswap V3）
  */
 export interface SwapArgs {
   sender: `0x${string}`;
@@ -122,7 +122,7 @@ export interface SwapArgs {
 }
 
 /**
- * Token metadata cache
+ * 代币元数据缓存
  */
 interface TokenMetadata {
   name?: string;
@@ -131,7 +131,7 @@ interface TokenMetadata {
 }
 
 /**
- * ERC20 event processor with token metadata support
+ * ERC20 事件处理器，支持代币元数据
  */
 export class ERC20EventProcessor extends EventProcessor {
   private db: PrismaClient;
@@ -141,7 +141,7 @@ export class ERC20EventProcessor extends EventProcessor {
     super(logger);
     this.db = db;
 
-    // Register Transfer event handler
+    // 注册 Transfer 事件处理器
     const transferEvent = ERC20_ABI.find((e) => e.type === 'event' && e.name === 'Transfer')!;
     this.registerEvent({
       signature: createEventSignature(transferEvent),
@@ -149,7 +149,7 @@ export class ERC20EventProcessor extends EventProcessor {
       handler: this.handleTransfer.bind(this),
     });
 
-    // Register Approval event handler
+    // 注册 Approval 事件处理器
     const approvalEvent = ERC20_ABI.find((e) => e.type === 'event' && e.name === 'Approval')!;
     this.registerEvent({
       signature: createEventSignature(approvalEvent),
@@ -157,7 +157,7 @@ export class ERC20EventProcessor extends EventProcessor {
       handler: this.handleApproval.bind(this),
     });
 
-    // Register Swap event handler (Uniswap V3)
+    // 注册 Swap 事件处理器（Uniswap V3）
     const swapEvent = UNISWAP_V3_POOL_ABI.find((e) => e.type === 'event' && e.name === 'Swap')!;
     this.registerEvent({
       signature: createEventSignature(swapEvent),
@@ -167,21 +167,21 @@ export class ERC20EventProcessor extends EventProcessor {
   }
 
   /**
-   * Set token metadata for a contract
+   * 设置合约的代币元数据
    */
   setTokenMetadata(address: string, metadata: TokenMetadata): void {
     this.tokenMetadata.set(address.toLowerCase(), metadata);
   }
 
   /**
-   * Get token metadata for a contract
+   * 获取合约的代币元数据
    */
   getTokenMetadata(address: string): TokenMetadata {
     return this.tokenMetadata.get(address.toLowerCase()) ?? {};
   }
 
   /**
-   * Handle Transfer event
+   * 处理 Transfer 事件
    */
   private async handleTransfer(
     event: {
@@ -199,7 +199,7 @@ export class ERC20EventProcessor extends EventProcessor {
     const args = event.args as unknown as TransferArgs;
     const metadata = this.getTokenMetadata(event.contractAddress);
 
-    // Calculate formatted value
+    // 计算格式化后的数值
     const decimals = metadata.decimals ?? 18;
     const valueFormatted = Number(args.value) / Math.pow(10, decimals);
 
@@ -214,7 +214,7 @@ export class ERC20EventProcessor extends EventProcessor {
       'Processing Transfer event'
     );
 
-    // Store in database (use upsert to handle duplicates)
+    // 存储到数据库（使用 upsert 处理重复数据）
     await this.db.transferEvent.upsert({
       where: {
         chainId_txHash_logIndex: {
@@ -241,7 +241,7 @@ export class ERC20EventProcessor extends EventProcessor {
       },
     });
 
-    // Also store in generic events table (use upsert to handle duplicates)
+    // 同时存储到通用事件表（使用 upsert 处理重复数据）
     await this.db.event.upsert({
       where: {
         chainId_txHash_logIndex: {
@@ -276,7 +276,7 @@ export class ERC20EventProcessor extends EventProcessor {
   }
 
   /**
-   * Handle Approval event
+   * 处理 Approval 事件
    */
   private async handleApproval(
     event: {
@@ -294,7 +294,7 @@ export class ERC20EventProcessor extends EventProcessor {
     const args = event.args as unknown as ApprovalArgs;
     const metadata = this.getTokenMetadata(event.contractAddress);
 
-    // Calculate formatted value
+    // 计算格式化后的数值
     const decimals = metadata.decimals ?? 18;
     const valueFormatted = Number(args.value) / Math.pow(10, decimals);
 
@@ -308,7 +308,7 @@ export class ERC20EventProcessor extends EventProcessor {
       'Processing Approval event'
     );
 
-    // Store in database (use upsert to handle duplicates)
+    // 存储到数据库（使用 upsert 处理重复数据）
     await this.db.approvalEvent.upsert({
       where: {
         chainId_txHash_logIndex: {
@@ -335,7 +335,7 @@ export class ERC20EventProcessor extends EventProcessor {
       },
     });
 
-    // Also store in generic events table (use upsert to handle duplicates)
+    // 同时存储到通用事件表（使用 upsert 处理重复数据）
     await this.db.event.upsert({
       where: {
         chainId_txHash_logIndex: {
@@ -370,7 +370,7 @@ export class ERC20EventProcessor extends EventProcessor {
   }
 
   /**
-   * Handle Swap event (Uniswap V3)
+   * 处理 Swap 事件（Uniswap V3）
    */
   private async handleSwap(
     event: {
@@ -399,7 +399,7 @@ export class ERC20EventProcessor extends EventProcessor {
       'Processing Swap event'
     );
 
-    // Store in database (use upsert to handle duplicates)
+    // 存储到数据库（使用 upsert 处理重复数据）
     await this.db.swapEvent.upsert({
       where: {
         chainId_txHash_logIndex: {
@@ -427,7 +427,7 @@ export class ERC20EventProcessor extends EventProcessor {
       },
     });
 
-    // Also store in generic events table (use upsert to handle duplicates)
+    // 同时存储到通用事件表（使用 upsert 处理重复数据）
     await this.db.event.upsert({
       where: {
         chainId_txHash_logIndex: {

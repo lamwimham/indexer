@@ -4,7 +4,7 @@ import type { Logger } from '../utils/logger.js';
 import { recordRpcCall } from '../monitoring/metrics.js';
 
 /**
- * Get viem chain by chain ID
+ * 根据链ID获取viem链配置
  */
 export function getChain(chainId: number): Chain {
   const chains: Record<number, Chain> = {
@@ -20,7 +20,7 @@ export function getChain(chainId: number): Chain {
 
   const chain = chains[chainId];
   if (!chain) {
-    // Return a custom chain configuration
+    // 返回自定义链配置
     return {
       id: chainId,
       name: `Chain ${chainId}`,
@@ -33,7 +33,7 @@ export function getChain(chainId: number): Chain {
 }
 
 /**
- * Create a viem public client
+ * 创建viem公共客户端
  */
 export function createRpcClient(
   chainId: number,
@@ -67,7 +67,7 @@ export function createRpcClient(
 }
 
 /**
- * RPC client wrapper with additional utilities
+ * RPC客户端包装器，提供额外的工具方法
  */
 export class RpcClient {
   private client: PublicClient;
@@ -81,7 +81,7 @@ export class RpcClient {
   }
 
   /**
-   * Wrap RPC call with metrics recording
+   * 包装RPC调用并记录指标
    */
   private async withMetrics<T>(
     method: string,
@@ -99,28 +99,28 @@ export class RpcClient {
   }
 
   /**
-   * Get the underlying viem client
+   * 获取底层的viem客户端
    */
   getClient(): PublicClient {
     return this.client;
   }
 
   /**
-   * Get chain ID
+   * 获取链ID
    */
   getChainId(): number {
     return this.chainId;
   }
 
   /**
-   * Get latest block number
+   * 获取最新区块号
    */
   async getLatestBlockNumber(): Promise<bigint> {
     return this.withMetrics('getBlockNumber', () => this.client.getBlockNumber());
   }
 
   /**
-   * Get block by number
+   * 根据区块号获取区块
    */
   async getBlock(blockNumber: bigint) {
     return this.withMetrics('getBlock', () =>
@@ -132,7 +132,7 @@ export class RpcClient {
   }
 
   /**
-   * Get block by hash
+   * 根据区块哈希获取区块
    */
   async getBlockByHash(blockHash: `0x${string}`) {
     return this.withMetrics('getBlock', () =>
@@ -144,7 +144,7 @@ export class RpcClient {
   }
 
   /**
-   * Get logs for a range of blocks
+   * 获取区块范围内的日志
    */
   async getLogs(params: {
     address?: `0x${string}` | `0x${string}`[];
@@ -161,7 +161,7 @@ export class RpcClient {
   }
 
   /**
-   * Get multiple blocks in batch
+   * 批量获取多个区块
    */
   async getBlocks(blockNumbers: bigint[]) {
     return this.withMetrics('getBlocks', () =>
@@ -170,7 +170,7 @@ export class RpcClient {
   }
 
   /**
-   * Check if connected
+   * 检查是否已连接
    */
   async checkConnection(): Promise<boolean> {
     try {
@@ -183,7 +183,7 @@ export class RpcClient {
   }
 
   /**
-   * Get chain ID from network
+   * 从网络获取链ID
    */
   async getNetworkChainId(): Promise<number> {
     return this.withMetrics('getChainId', async () =>
@@ -193,7 +193,7 @@ export class RpcClient {
 }
 
 /**
- * Create RPC client instance
+ * 创建RPC客户端实例
  */
 export function createRpcClientWrapper(
   chainId: number,

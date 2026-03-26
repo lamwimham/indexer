@@ -2,13 +2,13 @@ import type { PrismaClient } from '@prisma/client';
 import type { Address } from 'viem';
 
 /**
- * Repository for ERC20 Transfer events
+ * ERC20 Transfer 事件仓库
  */
 export class TransferEventRepository {
   constructor(private db: PrismaClient) {}
 
   /**
-   * Insert a batch of transfer events
+   * 批量插入转账事件
    */
   async insertBatch(events: Array<{
     chainId: number;
@@ -47,7 +47,7 @@ export class TransferEventRepository {
   }
 
   /**
-   * Query transfers with filters
+   * 根据条件查询转账记录
    */
   async query(filters: {
     chainId?: number;
@@ -97,7 +97,7 @@ export class TransferEventRepository {
   }
 
   /**
-   * Get transfer count with filters
+   * 根据条件统计转账数量
    */
   async count(filters: {
     chainId?: number;
@@ -125,7 +125,7 @@ export class TransferEventRepository {
   }
 
   /**
-   * Get balance changes for an address
+   * 获取地址的余额变动记录
    */
   async getBalanceChanges(
     chainId: number,
@@ -151,7 +151,7 @@ export class TransferEventRepository {
   }
 
   /**
-   * Mark events as removed (for reorg)
+   * 标记事件为已移除（用于重组处理）
    */
   async markAsRemoved(chainId: number, fromBlock: bigint, toBlock: bigint) {
     return this.db.transferEvent.updateMany({
@@ -164,7 +164,7 @@ export class TransferEventRepository {
   }
 
   /**
-   * Delete events in block range
+   * 删除指定区块范围内的事件
    */
   async deleteByBlockRange(chainId: number, fromBlock: bigint, toBlock: bigint) {
     return this.db.transferEvent.deleteMany({

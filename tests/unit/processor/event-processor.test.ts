@@ -3,7 +3,7 @@ import { EventProcessor, createEventSignature } from '../../../src/processor/eve
 import type { Abi } from 'viem';
 import type { Logger } from '../../../src/utils/logger.js';
 
-// Mock logger
+// 模拟日志器
 const mockLogger = {
   child: vi.fn().mockReturnThis(),
   debug: vi.fn(),
@@ -13,7 +13,7 @@ const mockLogger = {
   error: vi.fn(),
 } as unknown as Logger;
 
-// Test ABI
+// 测试用 ABI
 const TEST_ABI: Abi = [
   {
     type: 'event',
@@ -102,7 +102,7 @@ describe('EventProcessor', () => {
     });
 
     it('should return null for unregistered event signature', async () => {
-      // keccak256 of "Transfer(address,address,uint256)"
+      // "Transfer(address,address,uint256)" 的 keccak256 哈希
       const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
       
       const result = await processor.processLog(
@@ -123,7 +123,7 @@ describe('EventProcessor', () => {
         handler,
       });
 
-      // keccak256 of "Transfer(address,address,uint256)"
+      // "Transfer(address,address,uint256)" 的 keccak256 哈希
       const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
       const from = '0x0000000000000000000000001111111111111111111111111111111111111111';
       const to = '0x0000000000000000000000002222222222222222222222222222222222222222';
@@ -162,7 +162,7 @@ describe('EventProcessor', () => {
       const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
       const from = '0x0000000000000000000000001111111111111111111111111111111111111111';
       const to = '0x0000000000000000000000002222222222222222222222222222222222222222';
-      // Proper uint256 encoded values (32 bytes each)
+      // 正确编码的 uint256 值（每个 32 字节）
       const value1 = '0x00000000000000000000000000000000000000000000000000000000000003e8'; // 1000
       const value2 = '0x00000000000000000000000000000000000000000000000000000000000007d0'; // 2000
 

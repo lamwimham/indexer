@@ -8,7 +8,7 @@ import {
 } from '../../storage/index.js';
 
 /**
- * Context passed to resolvers
+ * 传递给解析器的上下文
  */
 export interface GraphQLContext {
   db: PrismaClient;
@@ -20,11 +20,11 @@ export interface GraphQLContext {
 }
 
 /**
- * GraphQL Resolvers
+ * GraphQL 解析器
  */
 export const resolvers = {
   // ============================================
-  // Scalar Resolvers
+  // 标量解析器
   // ============================================
 
   DateTime: {
@@ -40,7 +40,7 @@ export const resolvers = {
   },
 
   // ============================================
-  // Query Resolvers
+  // 查询解析器
   // ============================================
 
   Query: {
@@ -201,7 +201,7 @@ export const resolvers = {
 
       return transfers.map((t) => ({
         ...t,
-        // blockNumber and value are already strings from database
+        // blockNumber 和 value 已经是数据库中的字符串
       }));
     },
 
@@ -238,7 +238,7 @@ export const resolvers = {
   },
 
   // ============================================
-  // Type Resolvers
+  // 类型解析器
   // ============================================
 
   Contract: {
@@ -302,7 +302,7 @@ export const resolvers = {
 
       return transfers.map((t) => ({
         ...t,
-        // blockNumber and value are already strings from database
+        // blockNumber 和 value 已经是数据库中的字符串
       }));
     },
 
@@ -335,7 +335,7 @@ export const resolvers = {
 
       return approvals.map((a) => ({
         ...a,
-        // blockNumber and value are already strings from database
+        // blockNumber 和 value 已经是数据库中的字符串
       }));
     },
 
@@ -401,7 +401,7 @@ export const resolvers = {
 
       return transfers.map((t) => ({
         ...t,
-        // blockNumber and value are already strings from database
+        // blockNumber 和 value 已经是数据库中的字符串
       }));
     },
 
