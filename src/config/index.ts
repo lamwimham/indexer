@@ -1,5 +1,5 @@
 import { config as dotenvConfig } from 'dotenv';
-import { parseEnv, parseContractsConfig } from './schema.js';
+import { parseEnv, parseContractsConfig, parseChainsConfig } from './schema.js';
 import type { IndexerConfig, ChainConfig, ContractConfig } from '../types/index.js';
 
 // Load .env file
@@ -12,26 +12,32 @@ export function loadConfig(): IndexerConfig {
   const env = parseEnv();
   const contracts = parseContractsConfig(env.CONTRACTS);
 
-  // Default chain configuration
-  const chains: ChainConfig[] = [
-    {
-      id: env.CHAIN_ID,
-      name: getChainName(env.CHAIN_ID),
-      rpcUrl: env.RPC_URL,
-      blockTime: getChainBlockTime(env.CHAIN_ID),
-    },
-  ];
+  // Parse chains configuration (supports multi-chain)
+  const chainConfigs = parseChainsConfig(env.CHAINS, env.CHAIN_ID, env.RPC_URL);
 
-  // If no contracts specified via env, use default example
-  const contractConfigs: ContractConfig[] = contracts.length > 0
-    ? contracts.map(c => ({
-        name: c.name,
-        address: c.address as `0x${string}`,
-        startBlock: c.startBlock,
-        abi: c.abi,
-        events: c.events,
-      }))
-    : [];
+  if (chainConfigs.length === 0) {
+    console.error('❌ No valid chain configuration found. Exiting.');
+    process.exit(1);
+  }
+
+  // Build chain configurations with names and block times
+  const chains: ChainConfig[] = chainConfigs.map(c => ({
+    id: c.id,
+    name: c.name ?? getChainName(c.id),
+    rpcUrl: c.rpcUrl,
+    blockTime: c.blockTime ?? getChainBlockTime(c.id),
+  }));
+
+  // Build contract configurations
+  const defaultChainId = chains[0].id;
+  const contractConfigs: ContractConfig[] = contracts.map(c => ({
+    name: c.name,
+    address: c.address as `0x${string}`,
+    chainId: c.chainId ?? defaultChainId, // Default to first chain if not specified
+    startBlock: c.startBlock,
+    abi: c.abi,
+    events: c.events,
+  }));
 
   return {
     server: {

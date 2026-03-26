@@ -6,7 +6,7 @@
 
 生产级 Web3 链下索引服务，支持 REST 和 GraphQL API，专为以太坊及 EVM 兼容链设计。
 
-## ✨ 特性
+##  特性
 
 - **可靠同步** - 断点续传、自动重试、链重组检测与恢复
 - **高性能** - 批量获取、并发控制、增量同步
@@ -15,7 +15,7 @@
 - **生产就绪** - JWT 认证、Rate Limiting、分布式锁
 - **类型安全** - TypeScript + Prisma + Zod 全链路类型保障
 
-## 📐 架构
+##  架构
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -230,8 +230,9 @@ query ContractEvents {
 | `PORT` | API 端口 | `3000` |
 | `LOG_LEVEL` | 日志级别 | `info` |
 | `DATABASE_URL` | 数据库连接 | `file:./dev.db` |
-| `RPC_URL` | 区块链 RPC URL | - |
-| `CHAIN_ID` | 链 ID | `1` |
+| `RPC_URL` | 区块链 RPC URL (单链) | - |
+| `CHAIN_ID` | 链 ID (单链) | `1` |
+| `CHAINS` | 多链配置 (JSON) | - |
 | `START_BLOCK` | 起始区块 | `0` |
 | `BATCH_SIZE` | 批量大小 | `100` |
 | `CONFIRMATIONS` | 确认数 | `12` |
@@ -244,7 +245,56 @@ query ContractEvents {
 | `RATE_LIMIT_MAX` | 限流阈值 | `100` |
 | `REDIS_URL` | Redis 连接 | - |
 
-### 合约配置
+### 单链配置
+
+使用 `RPC_URL` 和 `CHAIN_ID` 配置单链：
+
+```env
+RPC_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY
+CHAIN_ID=1
+
+CONTRACTS='[{"name":"USDT","address":"0xdAC17F958D2ee523a2206206994597C13D831ec7","startBlock":4634748}]'
+```
+
+### 多链配置
+
+使用 `CHAINS` 环境变量配置多链，合约中指定 `chainId`：
+
+```env
+CHAINS='[
+  {"id":1,"name":"ethereum","rpcUrl":"https://eth-mainnet.g.alchemy.com/v2/KEY1"},
+  {"id":137,"name":"polygon","rpcUrl":"https://polygon-mainnet.g.alchemy.com/v2/KEY2"},
+  {"id":42161,"name":"arbitrum","rpcUrl":"https://arb-mainnet.g.alchemy.com/v2/KEY3"}
+]'
+
+CONTRACTS='[
+  {"name":"USDT-Ethereum","address":"0xdAC17F958D2ee523a2206206994597C13D831ec7","chainId":1,"startBlock":4634748},
+  {"name":"USDT-Polygon","address":"0xc2132D05D31c914a87C6611C10748AEb04B58e8F","chainId":137,"startBlock":25117600},
+  {"name":"USDT-Arbitrum","address":"0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9","chainId":42161,"startBlock":100000}
+]'
+```
+
+**链配置字段：**
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `id` | ✅ | 链 ID (1=Ethereum, 137=Polygon, 42161=Arbitrum 等) |
+| `name` | ❌ | 链名称 (可选，会自动推断) |
+| `rpcUrl` | ✅ | RPC 端点 URL |
+| `blockTime` | ❌ | 出块时间 (ms，可选，会自动推断) |
+
+**合约配置字段：**
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `name` | ✅ | 合约名称 (用于标识) |
+| `address` | ✅ | 合约地址 |
+| `chainId` | ❌ | 链 ID (不指定则默认为第一条链) |
+| `startBlock` | ✅ | 开始索引的区块号 |
+| `abi` | ❌ | 合约 ABI (可选) |
+| `events` | ❌ | 要索引的事件列表 (可选，默认全部) |
+
+### 合约配置示例
 
 ```json
 [
@@ -305,7 +355,7 @@ const synchronizer = new Synchronizer(config, db, logger, async (params) => {
 });
 ```
 
-## 🐳 Docker 部署
+##  Docker 部署
 
 ### 使用 Docker Compose
 
