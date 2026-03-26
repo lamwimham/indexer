@@ -8,12 +8,12 @@
 
 ## ✨ 特性
 
-- **🔄 可靠同步** - 断点续传、自动重试、链重组检测与恢复
-- **⚡ 高性能** - 批量获取、并发控制、增量同步
-- **🔌 双 API 支持** - REST API + GraphQL API
-- **📊 可观测性** - 结构化日志、Prometheus 指标、健康检查
-- **🔐 生产就绪** - JWT 认证、Rate Limiting、分布式锁
-- **🛠 类型安全** - TypeScript + Prisma + Zod 全链路类型保障
+- **可靠同步** - 断点续传、自动重试、链重组检测与恢复
+- **高性能** - 批量获取、并发控制、增量同步
+- **双 API 支持** - REST API + GraphQL API
+- **可观测性** - 结构化日志、Prometheus 指标、健康检查
+- **生产就绪** - JWT 认证、Rate Limiting、分布式锁
+- **类型安全** - TypeScript + Prisma + Zod 全链路类型保障
 
 ## 📐 架构
 
@@ -39,7 +39,7 @@
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 快速开始
+##  快速开始
 
 ### 环境要求
 
@@ -51,7 +51,7 @@
 
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone git@github.com:lamwimham/indexer.git
 cd indexer
 
 # 安装依赖
@@ -107,7 +107,7 @@ npm start
 - GraphQL Playground: http://localhost:3000/graphql (仅开发模式)
 - 健康检查: http://localhost:3000/health
 
-## 📖 API 文档
+##  API 文档
 
 ### REST API
 
@@ -220,7 +220,7 @@ query ContractEvents {
 }
 ```
 
-## ⚙️ 配置说明
+##  配置说明
 
 ### 环境变量
 
@@ -256,7 +256,7 @@ query ContractEvents {
 ]
 ```
 
-## 🔧 自定义事件处理器
+##  自定义事件处理器
 
 ### 创建处理器
 
@@ -334,7 +334,7 @@ docker build -t web3-indexer .
 docker run -p 3000:3000 --env-file .env web3-indexer
 ```
 
-## 📁 项目结构
+##  项目结构
 
 ```
 indexer/
@@ -377,7 +377,7 @@ indexer/
 └── package.json
 ```
 
-## 🧪 开发
+##  开发
 
 ```bash
 # 开发模式 (热重载)
@@ -400,7 +400,7 @@ npm run db:studio    # 打开 Prisma Studio
 npm run db:migrate   # 创建迁移
 ```
 
-## 📊 监控
+##  监控
 
 ### Prometheus 指标
 
@@ -414,6 +414,6 @@ npm run db:migrate   # 创建迁移
 
 启动监控服务后访问 `http://localhost:3001`，默认账号 `admin/admin`。
 
-## 📄 License
+##  License
 
 MIT
