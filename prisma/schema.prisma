@@ -1,0 +1,170 @@
+// Prisma Schema for Web3 Indexer
+// Supports both SQLite (development) and PostgreSQL (production)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Sync State - Track indexing progress per contract
+// ============================================
+model SyncState {
+  id               String   @id @default(uuid())
+  chainId          Int
+  contractAddress  String
+  contractName     String
+  lastSyncedBlock  String   // Store as string to handle large numbers
+  lastSyncedAt     DateTime @default(now())
+  isSyncing        Boolean  @default(false)
+  lastError        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([chainId, contractAddress])
+  @@index([chainId])
+  @@index([lastSyncedBlock])
+}
+
+// ============================================
+// Indexed Events - Store decoded event data
+// ============================================
+model Event {
+  id               String   @id @default(uuid())
+  chainId          Int
+  contractAddress  String
+  contractName     String
+  eventName        String
+  blockNumber      String   // Store as string to handle large numbers
+  blockTimestamp   DateTime
+  txHash           String
+  txIndex          Int
+  logIndex         Int
+  args             String   // JSON encoded event arguments
+  rawData          String   // Raw log data
+  removed          Boolean  @default(false) // For reorg handling
+  createdAt        DateTime @default(now())
+
+  @@unique([chainId, txHash, logIndex])
+  @@index([chainId, contractAddress])
+  @@index([chainId, eventName])
+  @@index([blockNumber])
+  @@index([blockTimestamp])
+}
+
+// ============================================
+// Block Checkpoints - For reorg detection
+// ============================================
+model BlockCheckpoint {
+  id           String   @id @default(uuid())
+  chainId      Int
+  blockNumber  String   // Store as string to handle large numbers
+  blockHash    String
+  timestamp    DateTime
+  createdAt    DateTime @default(now())
+
+  @@unique([chainId, blockNumber])
+  @@index([chainId])
+}
+
+// ============================================
+// Custom Data Models - Example for ERC20 Transfers
+// ============================================
+
+/// Store ERC20 Transfer events with decoded data
+model TransferEvent {
+  id              String   @id @default(uuid())
+  chainId         Int
+  contractAddress String
+  tokenName       String?
+  tokenSymbol     String?
+  from            String
+  to              String
+  value           String   // Store as string to handle large numbers
+  valueFormatted  Float?   // Human readable value (value / 10^decimals)
+  decimals        Int?
+  blockNumber     String   // Store as string to handle large numbers
+  blockTimestamp  DateTime
+  txHash          String
+  logIndex        Int
+  removed         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@unique([chainId, txHash, logIndex])
+  @@index([chainId, contractAddress])
+  @@index([from])
+  @@index([to])
+  @@index([blockNumber])
+  @@index([blockTimestamp])
+}
+
+/// Store ERC20 Approval events
+model ApprovalEvent {
+  id              String   @id @default(uuid())
+  chainId         Int
+  contractAddress String
+  tokenName       String?
+  tokenSymbol     String?
+  owner           String
+  spender         String
+  value           String   // Store as string to handle large numbers
+  valueFormatted  Float?
+  decimals        Int?
+  blockNumber     String   // Store as string to handle large numbers
+  blockTimestamp  DateTime
+  txHash          String
+  logIndex        Int
+  removed         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@unique([chainId, txHash, logIndex])
+  @@index([chainId, contractAddress])
+  @@index([owner])
+  @@index([spender])
+  @@index([blockNumber])
+}
+
+/// Store Uniswap V3 Swap events
+model SwapEvent {
+  id              String   @id @default(uuid())
+  chainId         Int
+  contractAddress String
+  poolName        String?
+  sender          String
+  recipient       String
+  amount0         String   // int256 can be negative, store as string
+  amount1         String   // int256 can be negative, store as string
+  sqrtPriceX96    String   // uint256, store as string
+  liquidity       String   // uint128, store as string
+  tick            Int
+  blockNumber     String   // Store as string to handle large numbers
+  blockTimestamp  DateTime
+  txHash          String
+  logIndex        Int
+  removed         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@unique([chainId, txHash, logIndex])
+  @@index([chainId, contractAddress])
+  @@index([sender])
+  @@index([recipient])
+  @@index([blockNumber])
+  @@index([blockTimestamp])
+}
+
+// ============================================
+// Generic Key-Value Store - For custom data
+// ============================================
+model KeyValue {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   // JSON encoded value
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}

@@ -1,0 +1,2 @@
+export { EventProcessor, createEventSignature, type EventDefinition } from './event-processor.js';
+export { ERC20EventProcessor, ERC20_ABI, type TransferArgs, type ApprovalArgs } from './handlers/erc20.handler.js';
