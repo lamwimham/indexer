@@ -44,29 +44,29 @@ describe('EventProcessor', () => {
   });
 
   describe('createEventSignature', () => {
-    it('should create correct signature for Transfer event', () => {
+    it('应该为 Transfer 事件创建正确的签名', () => {
       const transferEvent = TEST_ABI.find(e => e.type === 'event' && e.name === 'Transfer')!;
       const signature = createEventSignature(transferEvent);
       expect(signature).toBe('Transfer(address,address,uint256)');
     });
 
-    it('should create correct signature for Approval event', () => {
+    it('应该为 Approval 事件创建正确的签名', () => {
       const approvalEvent = TEST_ABI.find(e => e.type === 'event' && e.name === 'Approval')!;
       const signature = createEventSignature(approvalEvent);
       expect(signature).toBe('Approval(address,address,uint256)');
     });
 
-    it('should throw for non-event ABI item', () => {
+    it('对于非事件 ABI 项应该抛出错误', () => {
       const nonEvent = { type: 'function', name: 'transfer' } as Abi[number];
       expect(() => createEventSignature(nonEvent)).toThrow('ABI item is not an event');
     });
   });
 
   describe('registerEvent', () => {
-    it('should register an event handler', () => {
+    it('应该注册一个事件处理器', () => {
       const handler = vi.fn();
       const transferEvent = TEST_ABI.find(e => e.type === 'event' && e.name === 'Transfer')!;
-      
+
       processor.registerEvent({
         signature: 'Transfer(address,address,uint256)',
         abi: transferEvent,
@@ -77,7 +77,7 @@ describe('EventProcessor', () => {
       expect(registered.length).toBe(1);
     });
 
-    it('should register multiple events', () => {
+    it('应该注册多个事件', () => {
       const handler = vi.fn();
       const transferEvent = TEST_ABI.find(e => e.type === 'event' && e.name === 'Transfer')!;
       const approvalEvent = TEST_ABI.find(e => e.type === 'event' && e.name === 'Approval')!;
@@ -92,7 +92,7 @@ describe('EventProcessor', () => {
   });
 
   describe('processLog', () => {
-    it('should return null for log without topics', async () => {
+    it('对于没有 topics 的日志应该返回 null', async () => {
       const result = await processor.processLog(
         { address: '0x1234', topics: [], data: '0x', transactionHash: '0xabc', transactionIndex: 0, logIndex: 0 },
         { chainId: 1, contractAddress: '0x1234', contractName: 'Test', blockNumber: 1n, blockTimestamp: new Date() },
@@ -101,10 +101,10 @@ describe('EventProcessor', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null for unregistered event signature', async () => {
+    it('对于未注册的事件签名应该返回 null', async () => {
       // "Transfer(address,address,uint256)" 的 keccak256 哈希
       const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-      
+
       const result = await processor.processLog(
         { address: '0x1234', topics: [transferTopic], data: '0x', transactionHash: '0xabc', transactionIndex: 0, logIndex: 0 },
         { chainId: 1, contractAddress: '0x1234', contractName: 'Test', blockNumber: 1n, blockTimestamp: new Date() },
@@ -113,10 +113,10 @@ describe('EventProcessor', () => {
       expect(result).toBeNull();
     });
 
-    it('should process registered Transfer event', async () => {
+    it('应该处理已注册的 Transfer 事件', async () => {
       const handler = vi.fn();
       const transferEvent = TEST_ABI.find(e => e.type === 'event' && e.name === 'Transfer')!;
-      
+
       processor.registerEvent({
         signature: 'Transfer(address,address,uint256)',
         abi: transferEvent,
@@ -149,10 +149,10 @@ describe('EventProcessor', () => {
   });
 
   describe('processLogs', () => {
-    it('should process multiple logs', async () => {
+    it('应该处理多个日志', async () => {
       const handler = vi.fn();
       const transferEvent = TEST_ABI.find(e => e.type === 'event' && e.name === 'Transfer')!;
-      
+
       processor.registerEvent({
         signature: 'Transfer(address,address,uint256)',
         abi: transferEvent,

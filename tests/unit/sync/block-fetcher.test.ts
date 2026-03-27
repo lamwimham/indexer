@@ -3,7 +3,7 @@ import { BlockFetcher } from '../../../src/sync/block-fetcher.js';
 import type { RpcClient } from '../../../src/sync/rpc-client.js';
 import type { Logger } from '../../../src/utils/logger.js';
 
-// Mock logger
+// 模拟日志器
 const mockLogger = {
   child: vi.fn().mockReturnThis(),
   debug: vi.fn(),
@@ -30,7 +30,7 @@ describe('BlockFetcher', () => {
   });
 
   describe('fetchBlock', () => {
-    it('should fetch a single block with logs', async () => {
+    it('应该获取单个区块及其日志', async () => {
       const mockBlock = { number: 100n, hash: '0xabc', timestamp: 1234567890n };
       const mockLogs = [{ blockNumber: 100n, address: '0x1234' }];
 
@@ -50,7 +50,7 @@ describe('BlockFetcher', () => {
   });
 
   describe('fetchBlockRange', () => {
-    it('should fetch multiple blocks with logs', async () => {
+    it('应该获取多个区块及其日志', async () => {
       const mockBlocks = [
         { number: 100n, hash: '0xabc100', timestamp: 1000n },
         { number: 101n, hash: '0xabc101', timestamp: 1001n },
@@ -78,7 +78,7 @@ describe('BlockFetcher', () => {
       expect(results[2].block.number).toBe(102n);
     });
 
-    it('should group logs by block number', async () => {
+    it('应该按区块号对日志进行分组', async () => {
       const mockBlocks = [
         { number: 100n, hash: '0xabc100', timestamp: 1000n },
         { number: 101n, hash: '0xabc101', timestamp: 1001n },
@@ -98,17 +98,17 @@ describe('BlockFetcher', () => {
 
       const results = await fetcher.fetchBlockRange(100n, 101n);
 
-      expect(results[0].logs.length).toBe(2); // Block 100 has 2 logs
-      expect(results[1].logs.length).toBe(1); // Block 101 has 1 log
+      expect(results[0].logs.length).toBe(2); // 区块 100 有 2 条日志
+      expect(results[1].logs.length).toBe(1); // 区块 101 有 1 条日志
     });
 
-    it('should return empty logs array for blocks without logs', async () => {
+    it('对于没有日志的区块应该返回空数组', async () => {
       const mockBlocks = [
         { number: 100n, hash: '0xabc100', timestamp: 1000n },
         { number: 101n, hash: '0xabc101', timestamp: 1001n },
       ];
 
-      // Only block 100 has logs
+      // 只有区块 100 有日志
       const mockLogs = [
         { blockNumber: 100n, address: '0x1234', data: '0x1' },
       ];
@@ -122,12 +122,12 @@ describe('BlockFetcher', () => {
       const results = await fetcher.fetchBlockRange(100n, 101n);
 
       expect(results[0].logs.length).toBe(1);
-      expect(results[1].logs.length).toBe(0); // Block 101 has no logs
+      expect(results[1].logs.length).toBe(0); // 区块 101 没有日志
     });
   });
 
   describe('getLatestBlockWithConfirmations', () => {
-    it('should return latest block minus confirmations', async () => {
+    it('应该返回最新区块号减去确认数', async () => {
       (mockRpcClient.getLatestBlockNumber as vi.Mock).mockResolvedValue(1000n);
 
       const result = await fetcher.getLatestBlockWithConfirmations(12);
@@ -135,7 +135,7 @@ describe('BlockFetcher', () => {
       expect(result).toBe(988n); // 1000 - 12
     });
 
-    it('should handle zero confirmations', async () => {
+    it('应该处理零确认数的情况', async () => {
       (mockRpcClient.getLatestBlockNumber as vi.Mock).mockResolvedValue(1000n);
 
       const result = await fetcher.getLatestBlockWithConfirmations(0);
@@ -145,7 +145,7 @@ describe('BlockFetcher', () => {
   });
 
   describe('checkReorg', () => {
-    it('should return true when hash differs', async () => {
+    it('当哈希不同时应该返回 true', async () => {
       (mockRpcClient.getBlock as vi.Mock).mockResolvedValue({ hash: '0xdifferent' });
 
       const result = await fetcher.checkReorg(100n, '0xexpected');
@@ -153,7 +153,7 @@ describe('BlockFetcher', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false when hash matches', async () => {
+    it('当哈希匹配时应该返回 false', async () => {
       (mockRpcClient.getBlock as vi.Mock).mockResolvedValue({ hash: '0xexpected' });
 
       const result = await fetcher.checkReorg(100n, '0xexpected');
@@ -161,7 +161,7 @@ describe('BlockFetcher', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false on error', async () => {
+    it('当发生错误时应该返回 false', async () => {
       (mockRpcClient.getBlock as vi.Mock).mockRejectedValue(new Error('RPC error'));
 
       const result = await fetcher.checkReorg(100n, '0xexpected');
@@ -171,21 +171,21 @@ describe('BlockFetcher', () => {
   });
 
   describe('findCommonAncestor', () => {
-    it('should find matching block', async () => {
+    it('应该找到匹配的区块', async () => {
       const knownHashes = new Map<bigint, string>();
       knownHashes.set(100n, '0xabc');
       knownHashes.set(99n, '0xdef');
 
       (mockRpcClient.getBlock as vi.Mock)
-        .mockResolvedValueOnce({ hash: '0xdifferent' }) // 100 doesn't match
-        .mockResolvedValueOnce({ hash: '0xdef' }); // 99 matches
+        .mockResolvedValueOnce({ hash: '0xdifferent' }) // 100 不匹配
+        .mockResolvedValueOnce({ hash: '0xdef' }); // 99 匹配
 
       const result = await fetcher.findCommonAncestor(100n, knownHashes);
 
       expect(result).toBe(99n);
     });
 
-    it('should return null when no match found within depth limit', async () => {
+    it('当在深度限制内未找到匹配时应该返回 null', async () => {
       const knownHashes = new Map<bigint, string>();
       for (let i = 0; i <= 100; i++) {
         knownHashes.set(BigInt(i), `0xhash${i}`);
@@ -195,7 +195,7 @@ describe('BlockFetcher', () => {
 
       const result = await fetcher.findCommonAncestor(100n, knownHashes);
 
-      // When no match is found, it returns -1n (when currentBlock goes below 0)
+      // 当未找到匹配时，返回 -1n（当 currentBlock 小于 0 时）
       expect(result).toBe(-1n);
     });
   });

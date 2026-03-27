@@ -152,7 +152,7 @@ export class BlockFetcher {
   }
 
   /**
-   * Find the common ancestor after a reorg
+   * 查找重组后的共同祖先区块
    */
   async findCommonAncestor(
     fromBlock: bigint,
@@ -163,7 +163,7 @@ export class BlockFetcher {
     while (currentBlock >= 0n) {
       const expectedHash = knownHashes.get(currentBlock);
       if (!expectedHash) {
-        // No known hash for this block, can't verify
+        // 该区块没有已知哈希，无法验证
         return currentBlock;
       }
 
@@ -178,7 +178,7 @@ export class BlockFetcher {
 
       currentBlock -= 1n;
 
-      // Safety limit
+      // 安全限制
       if (fromBlock - currentBlock > 100n) {
         this.logger.warn('Reorg depth exceeds 100 blocks, stopping search');
         return currentBlock;

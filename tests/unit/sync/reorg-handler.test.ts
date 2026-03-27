@@ -4,7 +4,7 @@ import type { RpcClient } from '../../../src/sync/rpc-client.js';
 import type { BlockCheckpointRepository, EventRepository, TransferEventRepository } from '../../../src/storage/index.js';
 import type { Logger } from '../../../src/utils/logger.js';
 
-// Mock logger
+// 模拟日志器
 const mockLogger = {
   child: vi.fn().mockReturnThis(),
   debug: vi.fn(),
@@ -56,7 +56,7 @@ describe('ReorgHandler', () => {
   });
 
   describe('detectReorg', () => {
-    it('should return no reorg when no checkpoints exist', async () => {
+    it('当没有检查点时应该返回无重组', async () => {
       (mockCheckpointRepo.getLatest as vi.Mock).mockResolvedValue(null);
 
       const result = await handler.detectReorg(1);
@@ -64,7 +64,7 @@ describe('ReorgHandler', () => {
       expect(result).toEqual({ hasReorg: false, reorgDepth: 0, lastValidBlock: null });
     });
 
-    it('should return no reorg when all checkpoints match', async () => {
+    it('当所有检查点匹配时应该返回无重组', async () => {
       (mockCheckpointRepo.getLatest as vi.Mock).mockResolvedValue({
         chainId: 1,
         blockNumber: 100n,
@@ -85,7 +85,7 @@ describe('ReorgHandler', () => {
       expect(result.hasReorg).toBe(false);
     });
 
-    it('should detect reorg when checkpoint hash differs', async () => {
+    it('当检查点哈希不同时应该检测到重组', async () => {
       (mockCheckpointRepo.getLatest as vi.Mock).mockResolvedValue({
         chainId: 1,
         blockNumber: 100n,
@@ -97,19 +97,19 @@ describe('ReorgHandler', () => {
         { chainId: 1, blockNumber: 100n, blockHash: '0xhash100' },
       ]);
 
-      // Block 95 matches, block 100 doesn't
+      // 区块 95 匹配，区块 100 不匹配
       (mockRpcClient.getBlock as vi.Mock)
-        .mockResolvedValueOnce({ hash: '0xhash95' })  // Block 95 matches
-        .mockResolvedValueOnce({ hash: '0xdifferent' }); // Block 100 differs - reorg!
+        .mockResolvedValueOnce({ hash: '0xhash95' })  // 区块 95 匹配
+        .mockResolvedValueOnce({ hash: '0xdifferent' }); // 区块 100 不同 - 发生重组！
 
-      // For findLastValidBlock
+      // 用于 findLastValidBlock
       (mockCheckpointRepo.get as vi.Mock).mockResolvedValue({
         chainId: 1,
         blockNumber: 99n,
         blockHash: '0xhash99',
       });
       (mockRpcClient.getBlock as vi.Mock)
-        .mockResolvedValueOnce({ hash: '0xhash99' }); // Block 99 matches
+        .mockResolvedValueOnce({ hash: '0xhash99' }); // 区块 99 匹配
 
       const result = await handler.detectReorg(1);
 
@@ -118,7 +118,7 @@ describe('ReorgHandler', () => {
   });
 
   describe('handleReorg', () => {
-    it('should do nothing when no checkpoints exist', async () => {
+    it('当没有检查点时不应该执行任何操作', async () => {
       (mockCheckpointRepo.getLatest as vi.Mock).mockResolvedValue(null);
 
       await handler.handleReorg(1, 100n);
@@ -126,7 +126,7 @@ describe('ReorgHandler', () => {
       expect(mockEventRepo.deleteByBlockRange).not.toHaveBeenCalled();
     });
 
-    it('should delete events and checkpoints in reorg range', async () => {
+    it('应该删除重组范围内的事件和检查点', async () => {
       (mockCheckpointRepo.getLatest as vi.Mock).mockResolvedValue({
         chainId: 1,
         blockNumber: 110n,
@@ -140,7 +140,7 @@ describe('ReorgHandler', () => {
       expect(mockCheckpointRepo.deleteRange).toHaveBeenCalledWith(1, 100n, 110n);
     });
 
-    it('should do nothing when toBlock < fromBlock', async () => {
+    it('当 toBlock < fromBlock 时不应该执行任何操作', async () => {
       (mockCheckpointRepo.getLatest as vi.Mock).mockResolvedValue({
         chainId: 1,
         blockNumber: 90n,
@@ -154,7 +154,7 @@ describe('ReorgHandler', () => {
   });
 
   describe('saveCheckpoint', () => {
-    it('should save checkpoint to repository', async () => {
+    it('应该将检查点保存到仓库', async () => {
       await handler.saveCheckpoint(1, 100n, '0xabc', new Date());
 
       expect(mockCheckpointRepo.save).toHaveBeenCalledWith(1, 100n, '0xabc', expect.any(Date));

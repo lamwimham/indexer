@@ -24,7 +24,7 @@ const mockLogger = {
   error: vi.fn(),
 } as unknown as Logger;
 
-describe('API Integration Tests', () => {
+describe('API 集成测试', () => {
   let fastify: FastifyInstance;
   let mockSynchronizer: Synchronizer;
   let mockEventRepo: EventRepository;
@@ -136,8 +136,8 @@ describe('API Integration Tests', () => {
     await fastify.close();
   });
 
-  describe('Health Endpoints', () => {
-    it('GET /health should return healthy status', async () => {
+  describe('健康检查端点', () => {
+    it('GET /health 应该返回健康状态', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/health',
@@ -148,7 +148,7 @@ describe('API Integration Tests', () => {
       expect(body.status).toBe('healthy');
     });
 
-    it('GET /ready should return ready status', async () => {
+    it('GET /ready 应该返回就绪状态', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/ready',
@@ -160,8 +160,8 @@ describe('API Integration Tests', () => {
     });
   });
 
-  describe('Sync Status Endpoints', () => {
-    it('GET /api/v1/sync/status should return sync status', async () => {
+  describe('同步状态端点', () => {
+    it('GET /api/v1/sync/status 应该返回同步状态', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/v1/sync/status',
@@ -174,7 +174,7 @@ describe('API Integration Tests', () => {
       expect(body.data[0].contractName).toBe('TestToken');
     });
 
-    it('GET /api/v1/sync/metrics should return metrics', async () => {
+    it('GET /api/v1/sync/metrics 应该返回指标数据', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/v1/sync/metrics',
@@ -187,8 +187,8 @@ describe('API Integration Tests', () => {
     });
   });
 
-  describe('Events Endpoints', () => {
-    it('GET /api/v1/events should return events', async () => {
+  describe('事件端点', () => {
+    it('GET /api/v1/events 应该返回事件列表', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/v1/events',
@@ -200,7 +200,7 @@ describe('API Integration Tests', () => {
       expect(body.data).toHaveLength(1);
     });
 
-    it('GET /api/v1/events/count should return count', async () => {
+    it('GET /api/v1/events/count 应该返回事件数量', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/v1/events/count',
@@ -212,7 +212,7 @@ describe('API Integration Tests', () => {
       expect(body.data.count).toBe(100);
     });
 
-    it('GET /api/v1/events/names should return event names', async () => {
+    it('GET /api/v1/events/names 应该返回事件名称列表', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/v1/events/names?chainId=1&contractAddress=0x1234',
@@ -224,7 +224,7 @@ describe('API Integration Tests', () => {
       expect(body.data).toContain('Transfer');
     });
 
-    it('GET /api/v1/events/names should require chainId and contractAddress', async () => {
+    it('GET /api/v1/events/names 应该要求提供 chainId 和 contractAddress', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/v1/events/names',
@@ -234,8 +234,8 @@ describe('API Integration Tests', () => {
     });
   });
 
-  describe('Transfers Endpoints', () => {
-    it('GET /api/v1/transfers should return transfers', async () => {
+  describe('转账端点', () => {
+    it('GET /api/v1/transfers 应该返回转账列表', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/v1/transfers',
@@ -247,7 +247,7 @@ describe('API Integration Tests', () => {
       expect(body.data).toHaveLength(1);
     });
 
-    it('GET /api/v1/transfers/count should return count', async () => {
+    it('GET /api/v1/transfers/count 应该返回转账数量', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/v1/transfers/count',
@@ -259,7 +259,7 @@ describe('API Integration Tests', () => {
       expect(body.data.count).toBe(50);
     });
 
-    it('GET /api/v1/transfers/address/:address should return address transfers', async () => {
+    it('GET /api/v1/transfers/address/:address 应该返回指定地址的转账记录', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/v1/transfers/address/0x1111',
@@ -271,8 +271,8 @@ describe('API Integration Tests', () => {
     });
   });
 
-  describe('Sync States Endpoints', () => {
-    it('GET /api/v1/sync-states should return sync states', async () => {
+  describe('同步状态端点', () => {
+    it('GET /api/v1/sync-states 应该返回同步状态列表', async () => {
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/v1/sync-states',
