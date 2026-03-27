@@ -452,6 +452,8 @@ npm run db:migrate   # Create migration
 
 ### Grafana Dashboard
 
+![Grafana Dashboard](./images/dashboard.png)
+
 After starting monitoring services, visit `http://localhost:3001`, default credentials `admin/admin`.
 
 ## 📄 License

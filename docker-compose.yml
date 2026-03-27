@@ -62,7 +62,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"node:20-alpine AS builde
+      - "${POSTGRES_PORT:-5432}:5432"
 
   # ===========================================
   # Redis (for distributed locking)

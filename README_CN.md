@@ -452,6 +452,8 @@ npm run db:migrate   # 创建迁移
 
 ### Grafana 面板
 
+![Grafana Dashboard](./images/dashboard.png)
+
 启动监控服务后访问 `http://localhost:3001`，默认账号 `admin/admin`。
 
 ## 📄 License

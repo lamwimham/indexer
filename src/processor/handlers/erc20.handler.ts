@@ -3,6 +3,7 @@ import type { PrismaClient } from '@prisma/client';
 import type { Logger } from '../../utils/logger.js';
 import type { HandlerContext } from '../../types/index.js';
 import { EventProcessor, createEventSignature } from '../event-processor.js';
+import { recordEvent } from '../../monitoring/metrics.js';
 
 /**
  * ERC20 ABI，包含 Transfer 和 Approval 事件
@@ -273,6 +274,9 @@ export class ERC20EventProcessor extends EventProcessor {
         }),
       },
     });
+
+    // 记录指标
+    recordEvent(event.chainId, event.contractAddress, 'Transfer');
   }
 
   /**
@@ -367,6 +371,9 @@ export class ERC20EventProcessor extends EventProcessor {
         }),
       },
     });
+
+    // 记录指标
+    recordEvent(event.chainId, event.contractAddress, 'Approval');
   }
 
   /**
@@ -467,5 +474,8 @@ export class ERC20EventProcessor extends EventProcessor {
         }),
       },
     });
+
+    // 记录指标
+    recordEvent(event.chainId, event.contractAddress, 'Swap');
   }
 }
