@@ -3,7 +3,7 @@ import { loadConfig } from './config/index.js';
 import { createLogger } from './utils/logger.js';
 import { getDb, disconnectDb, SyncStateRepository, EventRepository, TransferEventRepository } from './storage/index.js';
 import { Synchronizer } from './sync/index.js';
-import { ERC20EventProcessor } from './processor/index.js';
+import { ERC20EventProcessor, UniswapV3EventProcessor, ProcessorRegistry } from './processor/index.js';
 import { startApiServer } from './api/index.js';
 import { createGraphQLServer, createGraphQLContext } from './api/graphql/index.js';
 import type { Address } from 'viem';
@@ -36,8 +36,30 @@ async function main() {
   const eventRepo = new EventRepository(db);
   const transferRepo = new TransferEventRepository(db);
 
-  // 初始化 ERC20 事件处理器
+  // 初始化处理器注册表
+  const processorRegistry = new ProcessorRegistry(logger);
+
+  // 注册默认处理器（处理所有合约）
   const erc20Processor = new ERC20EventProcessor(db, logger);
+  processorRegistry.registerDefault(erc20Processor);
+
+  // 注册 Uniswap V3 处理器（按合约名称匹配）
+  const uniswapV3Processor = new UniswapV3EventProcessor(db, logger);
+  for (const contract of config.contracts) {
+    // 如果合约名称包含 "Pool"，使用 Uniswap V3 处理器
+    if (contract.name.toLowerCase().includes('pool')) {
+      processorRegistry.register(contract.name, uniswapV3Processor);
+      processorRegistry.register(contract.address, uniswapV3Processor);
+    }
+  }
+
+  logger.info(
+    {
+      defaultProcessors: 1,
+      registeredKeys: processorRegistry.getRegisteredKeys(),
+    },
+    'Processors initialized'
+  );
 
   // 创建同步器并配置事件处理器
   const synchronizer = new Synchronizer(
@@ -47,25 +69,31 @@ async function main() {
     async ({ chainId, contractAddress, contractName, blockNumber, blockTimestamp, logs, db, logger }) => {
       const dbContext = { db, logger };
 
+      // 获取匹配的处理器列表
+      const processors = processorRegistry.getProcessors(contractName, contractAddress);
+
       for (const log of logs) {
-        await erc20Processor.processLog(
-          {
-            address: log.address,
-            topics: log.topics,
-            data: log.data,
-            transactionHash: log.transactionHash,
-            transactionIndex: log.transactionIndex,
-            logIndex: log.logIndex,
-          },
-          {
-            chainId,
-            contractAddress: contractAddress as Address,
-            contractName,
-            blockNumber,
-            blockTimestamp,
-          },
-          dbContext
-        );
+        // 遍历所有匹配的处理器
+        for (const processor of processors) {
+          await processor.processLog(
+            {
+              address: log.address,
+              topics: log.topics,
+              data: log.data,
+              transactionHash: log.transactionHash,
+              transactionIndex: log.transactionIndex,
+              logIndex: log.logIndex,
+            },
+            {
+              chainId,
+              contractAddress: contractAddress as Address,
+              contractName,
+              blockNumber,
+              blockTimestamp,
+            },
+            dbContext
+          );
+        }
       }
     }
   );

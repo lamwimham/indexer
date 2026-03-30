@@ -1,9 +1,3 @@
-// 核心处理器
-export { EventProcessor, createEventSignature, type EventDefinition } from './event-processor.js';
-
-// 处理器注册表
-export { ProcessorRegistry } from './processor-registry.js';
-
 // ERC20 处理器
 export {
   ERC20EventProcessor,
@@ -11,7 +5,7 @@ export {
   type TransferArgs,
   type ApprovalArgs,
   type TokenMetadata,
-} from './handlers/erc20.handler.js';
+} from './erc20.handler.js';
 
 // Uniswap V3 处理器
 export {
@@ -21,4 +15,4 @@ export {
   type MintArgs,
   type BurnArgs,
   type CollectArgs,
-} from './handlers/uniswap-v3.handler.js';
+} from './uniswap-v3.handler.js';

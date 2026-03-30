@@ -456,6 +456,20 @@ npm run db:migrate   # Create migration
 
 After starting monitoring services, visit `http://localhost:3001`, default credentials `admin/admin`.
 
+## 🗺️ Roadmap
+
+### v2.0 - Performance & Real-time
+
+- [ ] **Message Queue Integration** - Introduce message queue (BullMQ/Redis Streams) to decouple block fetching from event processing, enabling horizontal scaling and backpressure control
+- [ ] **Caching Layer** - Add Redis-based caching for hot data (latest blocks, frequent address queries) to reduce database load and improve API response times
+- [ ] **WebSocket Support** - Implement WebSocket API for real-time event notifications, sync status updates, and frontend subscriptions
+
+### Future
+
+- [ ] Horizontal scaling with multiple indexer instances
+- [ ] Event replay and re-indexing capabilities
+- [ ] Custom webhook integrations
+
 ## 📄 License
 
 MIT

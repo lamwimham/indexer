@@ -32,66 +32,6 @@ export const ERC20_ABI: Abi = [
 ];
 
 /**
- * Uniswap V3 Pool ABI，包含 Swap、Mint、Burn、Collect 事件
- */
-export const UNISWAP_V3_POOL_ABI: Abi = [
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, name: 'sender', type: 'address' },
-      { indexed: true, name: 'recipient', type: 'address' },
-      { indexed: false, name: 'amount0', type: 'int256' },
-      { indexed: false, name: 'amount1', type: 'int256' },
-      { indexed: false, name: 'sqrtPriceX96', type: 'uint256' },
-      { indexed: false, name: 'liquidity', type: 'uint128' },
-      { indexed: false, name: 'tick', type: 'int24' },
-    ],
-    name: 'Swap',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: false, name: 'sender', type: 'address' },
-      { indexed: true, name: 'owner', type: 'address' },
-      { indexed: true, name: 'tickLower', type: 'int24' },
-      { indexed: true, name: 'tickUpper', type: 'int24' },
-      { indexed: false, name: 'amount', type: 'uint128' },
-      { indexed: false, name: 'amount0', type: 'uint256' },
-      { indexed: false, name: 'amount1', type: 'uint256' },
-    ],
-    name: 'Mint',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, name: 'owner', type: 'address' },
-      { indexed: true, name: 'tickLower', type: 'int24' },
-      { indexed: true, name: 'tickUpper', type: 'int24' },
-      { indexed: false, name: 'amount', type: 'uint128' },
-      { indexed: false, name: 'amount0', type: 'uint256' },
-      { indexed: false, name: 'amount1', type: 'uint256' },
-    ],
-    name: 'Burn',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, name: 'owner', type: 'address' },
-      { indexed: false, name: 'recipient', type: 'address' },
-      { indexed: true, name: 'tickLower', type: 'int24' },
-      { indexed: true, name: 'tickUpper', type: 'int24' },
-      { indexed: false, name: 'amount0', type: 'uint256' },
-      { indexed: false, name: 'amount1', type: 'uint256' },
-    ],
-    name: 'Collect',
-    type: 'event',
-  },
-];
-
-/**
  * Transfer 事件参数
  */
 export interface TransferArgs {
@@ -110,29 +50,17 @@ export interface ApprovalArgs {
 }
 
 /**
- * Swap 事件参数（Uniswap V3）
- */
-export interface SwapArgs {
-  sender: `0x${string}`;
-  recipient: `0x${string}`;
-  amount0: bigint;
-  amount1: bigint;
-  sqrtPriceX96: bigint;
-  liquidity: bigint;
-  tick: number;
-}
-
-/**
  * 代币元数据缓存
  */
-interface TokenMetadata {
+export interface TokenMetadata {
   name?: string;
   symbol?: string;
   decimals?: number;
 }
 
 /**
- * ERC20 事件处理器，支持代币元数据
+ * ERC20 事件处理器
+ * 处理 Transfer 和 Approval 事件
  */
 export class ERC20EventProcessor extends EventProcessor {
   private db: PrismaClient;
@@ -156,14 +84,6 @@ export class ERC20EventProcessor extends EventProcessor {
       signature: createEventSignature(approvalEvent),
       abi: approvalEvent,
       handler: this.handleApproval.bind(this),
-    });
-
-    // 注册 Swap 事件处理器（Uniswap V3）
-    const swapEvent = UNISWAP_V3_POOL_ABI.find((e) => e.type === 'event' && e.name === 'Swap')!;
-    this.registerEvent({
-      signature: createEventSignature(swapEvent),
-      abi: swapEvent,
-      handler: this.handleSwap.bind(this),
     });
   }
 
@@ -374,108 +294,5 @@ export class ERC20EventProcessor extends EventProcessor {
 
     // 记录指标
     recordEvent(event.chainId, event.contractAddress, 'Approval');
-  }
-
-  /**
-   * 处理 Swap 事件（Uniswap V3）
-   */
-  private async handleSwap(
-    event: {
-      args: Record<string, unknown>;
-      blockNumber: bigint;
-      blockTimestamp: Date;
-      transactionHash: `0x${string}`;
-      logIndex: number;
-      chainId: number;
-      contractAddress: `0x${string}`;
-      contractName: string;
-    },
-    context: HandlerContext
-  ): Promise<void> {
-    const args = event.args as unknown as SwapArgs;
-
-    context.logger.info(
-      {
-        sender: args.sender,
-        recipient: args.recipient,
-        amount0: args.amount0.toString(),
-        amount1: args.amount1.toString(),
-        tick: args.tick,
-        contract: event.contractName,
-      },
-      'Processing Swap event'
-    );
-
-    // 存储到数据库（使用 upsert 处理重复数据）
-    await this.db.swapEvent.upsert({
-      where: {
-        chainId_txHash_logIndex: {
-          chainId: event.chainId,
-          txHash: event.transactionHash.toLowerCase(),
-          logIndex: event.logIndex,
-        },
-      },
-      update: {},
-      create: {
-        chainId: event.chainId,
-        contractAddress: event.contractAddress.toLowerCase(),
-        poolName: event.contractName,
-        sender: args.sender.toLowerCase(),
-        recipient: args.recipient.toLowerCase(),
-        amount0: args.amount0.toString(),
-        amount1: args.amount1.toString(),
-        sqrtPriceX96: args.sqrtPriceX96.toString(),
-        liquidity: args.liquidity.toString(),
-        tick: args.tick,
-        blockNumber: event.blockNumber.toString(),
-        blockTimestamp: event.blockTimestamp,
-        txHash: event.transactionHash.toLowerCase(),
-        logIndex: event.logIndex,
-      },
-    });
-
-    // 同时存储到通用事件表（使用 upsert 处理重复数据）
-    await this.db.event.upsert({
-      where: {
-        chainId_txHash_logIndex: {
-          chainId: event.chainId,
-          txHash: event.transactionHash.toLowerCase(),
-          logIndex: event.logIndex,
-        },
-      },
-      update: {},
-      create: {
-        chainId: event.chainId,
-        contractAddress: event.contractAddress.toLowerCase(),
-        contractName: event.contractName,
-        eventName: 'Swap',
-        blockNumber: event.blockNumber.toString(),
-        blockTimestamp: event.blockTimestamp,
-        txHash: event.transactionHash.toLowerCase(),
-        txIndex: 0,
-        logIndex: event.logIndex,
-        args: JSON.stringify({
-          sender: args.sender,
-          recipient: args.recipient,
-          amount0: args.amount0.toString(),
-          amount1: args.amount1.toString(),
-          sqrtPriceX96: args.sqrtPriceX96.toString(),
-          liquidity: args.liquidity.toString(),
-          tick: args.tick,
-        }),
-        rawData: JSON.stringify({
-          sender: args.sender,
-          recipient: args.recipient,
-          amount0: args.amount0.toString(),
-          amount1: args.amount1.toString(),
-          sqrtPriceX96: args.sqrtPriceX96.toString(),
-          liquidity: args.liquidity.toString(),
-          tick: args.tick,
-        }),
-      },
-    });
-
-    // 记录指标
-    recordEvent(event.chainId, event.contractAddress, 'Swap');
   }
 }
